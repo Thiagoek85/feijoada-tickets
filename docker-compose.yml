@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  feijoada-tickets:
+    container_name: feijoada-tickets
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3443:3443"
+    environment:
+      - PORT=3000
+      - HTTPS_PORT=3443
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./certs:/app/certs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
