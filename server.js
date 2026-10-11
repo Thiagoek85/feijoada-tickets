@@ -176,7 +176,7 @@ app.post('/api/tickets', async (req, res) => {
 
     // Obter preço unitário configurado se não fornecido (padrão 1500 ienes)
     const configPrice = db.prepare("SELECT value FROM config WHERE key = 'unit_price'").get();
-    const finalUnitPrice = unit_price !== undefined ? parseFloat(unit_price) : parseFloat(configPrice?.value || 1500);
+    const finalUnitPrice = unit_price !== undefined ? parseFloat(unit_price) : parseFloat(configPrice?.value || 1000);
     const totalPrice = qty * finalUnitPrice;
 
     // Gerar código único
@@ -242,7 +242,7 @@ app.post('/api/tickets/batch', async (req, res) => {
     const prefix = prefix_name ? prefix_name.trim() : 'Vale Avulso';
 
     const configPrice = db.prepare("SELECT value FROM config WHERE key = 'unit_price'").get();
-    const finalUnitPrice = unit_price !== undefined ? parseFloat(unit_price) : parseFloat(configPrice?.value || 1500);
+    const finalUnitPrice = unit_price !== undefined ? parseFloat(unit_price) : parseFloat(configPrice?.value || 1000);
     const totalPrice = qtyPerTicket * finalUnitPrice;
 
     const createdTickets = [];

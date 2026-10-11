@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="180" fill="white" opacity="0.12"/>
+  <text x="50%" y="54%" font-size="220" text-anchor="middle" dominant-baseline="middle" filter="url(#shadow)">🍲</text>
+  <text x="50%" y="86%" font-family="-apple-system, system-ui, sans-serif" font-weight="900" font-size="38" fill="white" text-anchor="middle" letter-spacing="2">FEIJOADA</text>
+</svg>

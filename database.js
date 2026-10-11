@@ -58,7 +58,7 @@ initConfig.run('event_name', 'Feijoada Comunitária da Paróquia');
 initConfig.run('event_date', '2026-10-18');
 initConfig.run('event_time', '11:30 às 15:00');
 initConfig.run('event_location', 'Salão Paroquial');
-initConfig.run('unit_price', '1500');
+initConfig.run('unit_price', '1000');
 initConfig.run('currency_symbol', '¥');
 
 module.exports = db;

@@ -1,0 +1,18 @@
+{
+  "name": "Vale Feijoada Comunitária",
+  "short_name": "Vale Feijoada",
+  "description": "Sistema de Tickets Digitais com QR Code e Logística de Entrega",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fff7ed",
+  "theme_color": "#ea580c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

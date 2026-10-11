@@ -37,6 +37,8 @@
 
 input, select, textarea {
   user-select: text;
+  font-size: 16px !important; /* Previne auto-zoom indesejado no iOS Safari */
+  touch-action: manipulation;
 }
 
 body {
@@ -44,9 +46,10 @@ body {
   background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
-  padding-bottom: 110px; /* Espaço para o Floating Dock inferior */
+  padding-bottom: calc(115px + env(safe-area-inset-bottom, 0px)); /* Safe area para iPhone e Android */
   overflow-x: hidden;
   position: relative;
+  touch-action: manipulation;
 }
 
 /* Bolhas de luz ambiente (Glass backlight effects) */
@@ -82,7 +85,7 @@ body::after {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid var(--glass-border);
-  padding: 14px 20px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 14px 20px;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -609,7 +612,7 @@ body::after {
 /* DOCK DE NAVEGAÇÃO INFERIOR ESTILO IPHONE */
 .ios-floating-dock {
   position: fixed;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);

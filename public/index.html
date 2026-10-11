@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Vale Feijoada - App do Colaborador</title>
+
+  <!-- Otimizações Android & Chrome -->
+  <meta name="theme-color" content="#ea580c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+  <!-- Otimizações Apple iOS & Safari -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Vale Feijoada">
+  <link rel="apple-touch-icon" href="icon.svg">
+
   <link rel="stylesheet" href="style.css">
   <!-- HTML5 QR Code Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -123,7 +136,7 @@
           <!-- Banner do Total a Pagar -->
           <div class="price-banner-glass">
             <span class="price-banner-label">Total a Cobrar:</span>
-            <span class="price-banner-value" id="calculated-total">¥ 1.500</span>
+            <span class="price-banner-value" id="calculated-total">¥ 1.000</span>
           </div>
 
           <!-- Botão Gigante de Finalizar -->
@@ -144,7 +157,7 @@
 
           <div class="ticket-success-code" id="success-code">FEIJ-0000</div>
           <div style="font-size: 1.15rem; font-weight: 800; color: #1c1917; margin-top: 4px;" id="success-buyer">Nome</div>
-          <div style="font-size: 1rem; font-weight: 700; color: #c2410c; margin-bottom: 16px;" id="success-qty">1 Porção • ¥ 1.500</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #c2410c; margin-bottom: 16px;" id="success-qty">1 Porção • ¥ 1.000</div>
 
           <!-- Botões Grandes de Ação do Ticket Gerado -->
           <div style="display: flex; flex-direction: column; gap: 10px;">

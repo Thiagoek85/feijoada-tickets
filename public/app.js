@@ -4,7 +4,7 @@ let isScannerRunning = false;
 let currentTicketData = null;
 let currentCreatedTicket = null;
 let eventConfig = {
-  unit_price: 1500,
+  unit_price: 1000,
   currency_symbol: '¥',
   event_name: 'Feijoada Comunitária da Paróquia',
   https_port: 3443,
@@ -14,10 +14,24 @@ let eventConfig = {
 // Base path detection para suporte a Tailscale Funnel (/feijoada) ou acesso local
 const BASE_PATH = window.location.pathname.startsWith('/feijoada') ? '/feijoada' : '';
 
+// Feedback Háptico / Vibração Tátil para Android e iOS
+function triggerHaptic(type = 'light') {
+  try {
+    if ('vibrate' in navigator) {
+      if (type === 'light') navigator.vibrate(25);
+      else if (type === 'success') navigator.vibrate([40, 50, 60]);
+      else if (type === 'error') navigator.vibrate([160, 80, 160]);
+    }
+  } catch (e) {
+    // silencioso se não suportado
+  }
+}
+
 // Web Audio API para sons de confirmação e erro estilo iOS
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSuccessSound() {
+  triggerHaptic('success');
   try {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const now = audioCtx.currentTime;
@@ -49,6 +63,7 @@ function playSuccessSound() {
 }
 
 function playErrorSound() {
+  triggerHaptic('error');
   try {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const now = audioCtx.currentTime;
@@ -166,6 +181,7 @@ function setupSalesForm() {
     let current = parseInt(qtyHidden.value, 10) || 1;
     if (current > 1) {
       current--;
+      triggerHaptic('light');
       setQuantity(current);
     }
   });
@@ -174,6 +190,7 @@ function setupSalesForm() {
     let current = parseInt(qtyHidden.value, 10) || 1;
     if (current < 100) {
       current++;
+      triggerHaptic('light');
       setQuantity(current);
     }
   });
@@ -181,6 +198,7 @@ function setupSalesForm() {
   // Atalhos de quantidade (chips)
   qtyChips.forEach(chip => {
     chip.addEventListener('click', () => {
+      triggerHaptic('light');
       const qty = parseInt(chip.getAttribute('data-qty'), 10);
       setQuantity(qty);
     });
@@ -199,6 +217,7 @@ function setupSalesForm() {
   // Seletor de forma de pagamento
   paymentChips.forEach(chip => {
     chip.addEventListener('click', () => {
+      triggerHaptic('light');
       paymentChips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       methodHidden.value = chip.getAttribute('data-method');
@@ -276,7 +295,7 @@ function setupSalesForm() {
 
 function updateSalesTotal() {
   const qty = parseInt(document.getElementById('ticket_quantity')?.value, 10) || 1;
-  const unitPrice = parseFloat(eventConfig.unit_price) || 1500;
+  const unitPrice = parseFloat(eventConfig.unit_price) || 1000;
   const total = qty * unitPrice;
   const label = document.getElementById('calculated-total');
   if (label) label.textContent = formatMoney(total);
@@ -743,4 +762,11 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// Registro PWA (Service Worker para Android e iOS)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
 }
