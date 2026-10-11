@@ -87,44 +87,26 @@
             </div>
           </div>
 
-          <!-- Seletor de Pagamento em Botões Grandes -->
+          <!-- Pagamento Padrão em Dinheiro + Seleção de Data por Calendário -->
           <div class="form-group-glass">
-            <label>💳 Forma de Pagamento</label>
-            <div class="payment-grid-glass">
-              <div class="payment-chip active" data-method="dinheiro">
-                <span class="payment-chip-icon">💵</span>
-                <div class="payment-chip-info">
-                  <span class="payment-chip-name">Dinheiro</span>
-                  <span class="payment-chip-desc">¥ Espécie</span>
+            <label>💵 Pagamento (Padrão: Dinheiro)</label>
+            <div class="payment-cash-card">
+              <div class="payment-cash-info">
+                <span style="font-size: 1.8rem;">💵</span>
+                <div>
+                  <div style="font-weight: 800; font-size: 0.95rem; color: #1c1917;">Pagamento em Dinheiro</div>
+                  <div id="sales-paydate-label" style="font-size: 0.78rem; color: #15803d; font-weight: 700;">
+                    📅 Pago em: <span id="sales-paydate-text">Hoje</span>
+                  </div>
                 </div>
               </div>
-
-              <div class="payment-chip" data-method="paypay">
-                <span class="payment-chip-icon">📱</span>
-                <div class="payment-chip-info">
-                  <span class="payment-chip-name">PayPay</span>
-                  <span class="payment-chip-desc">QR Code App</span>
-                </div>
-              </div>
-
-              <div class="payment-chip" data-method="transferencia">
-                <span class="payment-chip-icon">🏦</span>
-                <div class="payment-chip-info">
-                  <span class="payment-chip-name">Yucho / Banco</span>
-                  <span class="payment-chip-desc">Transferência</span>
-                </div>
-              </div>
-
-              <div class="payment-chip" data-method="cartao">
-                <span class="payment-chip-icon">💳</span>
-                <div class="payment-chip-info">
-                  <span class="payment-chip-name">Cartão</span>
-                  <span class="payment-chip-desc">Crédito/Débito</span>
-                </div>
-              </div>
+              <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger">
+                📅 Alterar Dia
+              </button>
             </div>
             <input type="hidden" id="payment_method" value="dinheiro">
             <input type="hidden" id="payment_status" value="pago">
+            <input type="hidden" id="payment_date" value="">
           </div>
 
           <!-- Observações -->
@@ -424,28 +406,25 @@
               <input type="hidden" id="edit_payment_status" value="pago">
             </div>
 
-            <!-- PAGAMENTO: Forma de Pagamento -->
+            <!-- PAGAMENTO: Dinheiro Padrão + Data de Pagamento via Calendário -->
             <div class="form-group-glass">
-              <label>💵 Forma de Pagamento</label>
-              <div class="payment-grid-glass">
-                <div class="payment-chip active" id="chip-method-dinheiro" data-editmethod="dinheiro">
-                  <span class="payment-chip-icon">💵</span>
-                  <span class="payment-chip-name">Dinheiro</span>
+              <label>💵 Pagamento (Padrão: Dinheiro)</label>
+              <div class="payment-cash-card">
+                <div class="payment-cash-info">
+                  <span style="font-size: 1.8rem;">💵</span>
+                  <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: #1c1917;">Pagamento em Dinheiro</div>
+                    <div id="edit-paydate-label" style="font-size: 0.78rem; color: #15803d; font-weight: 700;">
+                      📅 Data: <span id="edit-paydate-text">Não informada</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="payment-chip" id="chip-method-paypay" data-editmethod="paypay">
-                  <span class="payment-chip-icon">📱</span>
-                  <span class="payment-chip-name">PayPay</span>
-                </div>
-                <div class="payment-chip" id="chip-method-transferencia" data-editmethod="transferencia">
-                  <span class="payment-chip-icon">🏦</span>
-                  <span class="payment-chip-name">Yucho/Banco</span>
-                </div>
-                <div class="payment-chip" id="chip-method-cartao" data-editmethod="cartao">
-                  <span class="payment-chip-icon">💳</span>
-                  <span class="payment-chip-name">Cartão</span>
-                </div>
+                <button type="button" id="btn-open-calendar-edit" class="btn-calendar-trigger">
+                  📅 Alterar Dia
+                </button>
               </div>
               <input type="hidden" id="edit_payment_method" value="dinheiro">
+              <input type="hidden" id="edit_payment_date" value="">
             </div>
 
             <!-- Observações -->
@@ -534,6 +513,50 @@
           </a>
           <button type="button" id="btn-download-qr" class="btn-glass btn-secondary-glass">
             📥 Baixar Imagem do QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL POP-UP DE CALENDÁRIO (DATA DE PAGAMENTO) ==================== -->
+  <div id="calendar-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 360px;">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">📅 Dia do Pagamento</h3>
+        <button type="button" id="btn-close-calendar" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="text-align: left; padding: 20px;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Selecione o dia em que o valor em dinheiro foi entregue:
+        </p>
+
+        <!-- Atalhos rápidos de data -->
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+          <button type="button" id="btn-date-shortcut-today" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
+            Hoje
+          </button>
+          <button type="button" id="btn-date-shortcut-yesterday" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
+            Ontem
+          </button>
+          <button type="button" id="btn-date-shortcut-event" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
+            Dia do Evento
+          </button>
+        </div>
+
+        <div class="form-group-glass">
+          <label for="calendar-date-picker" style="font-size: 0.85rem; font-weight: 700; color: #1c1917; margin-bottom: 6px; display: block;">
+            Escolher no Calendário:
+          </label>
+          <input type="date" id="calendar-date-picker" class="input-glass" style="font-size: 1.1rem; font-weight: 800; padding: 12px; text-align: center; color: #c2410c;">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+          <button type="button" id="btn-confirm-calendar-date" class="btn-glass btn-success-glass btn-large-hero">
+            ✅ CONFIRMAR DIA
+          </button>
+          <button type="button" id="btn-cancel-calendar-modal" class="btn-glass btn-secondary-glass">
+            Voltar
           </button>
         </div>
       </div>

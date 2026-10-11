@@ -52,6 +52,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_deliveries_ticket ON deliveries(ticket_id);
 `);
 
+// Migração segura para adicionar payment_date se não existir
+try {
+  const tableInfo = db.prepare("PRAGMA table_info(tickets)").all();
+  const hasPaymentDate = tableInfo.some(col => col.name === 'payment_date');
+  if (!hasPaymentDate) {
+    db.prepare("ALTER TABLE tickets ADD COLUMN payment_date TEXT DEFAULT ''").run();
+    // Preencher tickets existentes com a data de criação
+    db.prepare("UPDATE tickets SET payment_date = substr(created_at, 1, 10) WHERE payment_status = 'pago' AND (payment_date IS NULL OR payment_date = '')").run();
+  }
+} catch (e) {
+  console.warn('Erro ao verificar/migrar payment_date:', e.message);
+}
+
 // Configuração inicial padrão do evento
 const initConfig = db.prepare('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)');
 initConfig.run('event_name', 'Feijoada Comunitária da Paróquia');

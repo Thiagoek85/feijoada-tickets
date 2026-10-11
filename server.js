@@ -163,7 +163,7 @@ app.get('/api/tickets', (req, res) => {
 // Criar Novo Ticket (Venda)
 app.post('/api/tickets', async (req, res) => {
   try {
-    const { buyer_name, buyer_phone, quantity, unit_price, payment_status, payment_method, notes } = req.body;
+    const { buyer_name, buyer_phone, quantity, unit_price, payment_status, payment_method, payment_date, notes } = req.body;
 
     if (!buyer_name || !buyer_name.trim()) {
       return res.status(400).json({ error: 'O nome do comprador é obrigatório.' });
@@ -174,7 +174,7 @@ app.post('/api/tickets', async (req, res) => {
       return res.status(400).json({ error: 'A quantidade deve ser pelo menos 1.' });
     }
 
-    // Obter preço unitário configurado se não fornecido (padrão 1500 ienes)
+    // Obter preço unitário configurado se não fornecido
     const configPrice = db.prepare("SELECT value FROM config WHERE key = 'unit_price'").get();
     const finalUnitPrice = unit_price !== undefined ? parseFloat(unit_price) : parseFloat(configPrice?.value || 1000);
     const totalPrice = qty * finalUnitPrice;
@@ -189,11 +189,16 @@ app.post('/api/tickets', async (req, res) => {
       attempts++;
     }
 
+    // Data de pagamento: padrão hoje (YYYY-MM-DD) se estiver pago
+    const todayStr = new Date().toISOString().split('T')[0];
+    const finalPaymentStatus = payment_status || 'pago';
+    const finalPaymentDate = payment_date !== undefined ? payment_date : (finalPaymentStatus === 'pago' ? todayStr : '');
+
     const insert = db.prepare(`
       INSERT INTO tickets (
         code, buyer_name, buyer_phone, quantity, delivered_quantity,
-        unit_price, total_price, payment_status, payment_method, status, notes
-      ) VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, 'ativo', ?)
+        unit_price, total_price, payment_status, payment_method, payment_date, status, notes
+      ) VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 'ativo', ?)
     `);
 
     const result = insert.run(
@@ -203,8 +208,9 @@ app.post('/api/tickets', async (req, res) => {
       qty,
       finalUnitPrice,
       totalPrice,
-      payment_status || 'pago',
+      finalPaymentStatus,
       payment_method || 'dinheiro',
+      finalPaymentDate,
       (notes || '').trim()
     );
 
@@ -472,6 +478,7 @@ app.put('/api/tickets/:code', (req, res) => {
       delivered_quantity,
       payment_method,
       payment_status,
+      payment_date,
       status,
       notes
     } = req.body;
@@ -487,8 +494,9 @@ app.put('/api/tickets/:code', (req, res) => {
     }
 
     const newTotalPrice = newQty * ticket.unit_price;
-    const newPayMethod = payment_method !== undefined ? payment_method : ticket.payment_method;
+    const newPayMethod = payment_method !== undefined ? payment_method : (ticket.payment_method || 'dinheiro');
     const newPayStatus = payment_status !== undefined ? payment_status : ticket.payment_status;
+    const newPayDate = payment_date !== undefined ? payment_date : (ticket.payment_date || '');
     const newNotes = notes !== undefined ? notes.trim() : ticket.notes;
 
     // Calcular novo status
@@ -514,6 +522,7 @@ app.put('/api/tickets/:code', (req, res) => {
           total_price = ?,
           payment_method = ?,
           payment_status = ?,
+          payment_date = ?,
           status = ?,
           notes = ?,
           updated_at = datetime('now', 'localtime')
@@ -526,6 +535,7 @@ app.put('/api/tickets/:code', (req, res) => {
       newTotalPrice,
       newPayMethod,
       newPayStatus,
+      newPayDate,
       calculatedStatus,
       newNotes,
       ticket.id
@@ -571,10 +581,10 @@ app.get('/api/export/csv', (req, res) => {
     const config = db.prepare("SELECT value FROM config WHERE key = 'currency_symbol'").get();
     const symbol = config?.value || '¥';
     
-    let csv = `ID;Codigo;Nome Comprador;Telefone;Qtd Vendida;Qtd Entregue;Preco Total (${symbol});Forma Pagamento;Status Pagamento;Status Ticket;Criado Em;Atualizado Em;Observacoes\n`;
+    let csv = `ID;Codigo;Nome Comprador;Telefone;Qtd Vendida;Qtd Entregue;Preco Total (${symbol});Data Pagamento;Forma Pagamento;Status Pagamento;Status Ticket;Criado Em;Atualizado Em;Observacoes\n`;
     
     tickets.forEach(t => {
-      csv += `${t.id};"${t.code}";"${t.buyer_name.replace(/"/g, '""')}";"${t.buyer_phone}";${t.quantity};${t.delivered_quantity};${Math.round(t.total_price)};"${t.payment_method}";"${t.payment_status}";"${t.status}";"${t.created_at}";"${t.updated_at}";"${(t.notes || '').replace(/"/g, '""')}"\n`;
+      csv += `${t.id};"${t.code}";"${t.buyer_name.replace(/"/g, '""')}";"${t.buyer_phone}";${t.quantity};${t.delivered_quantity};${Math.round(t.total_price)};"${t.payment_date || ''}";"${t.payment_method || 'dinheiro'}";"${t.payment_status}";"${t.status}";"${t.created_at}";"${t.updated_at}";"${(t.notes || '').replace(/"/g, '""')}"\n`;
     });
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

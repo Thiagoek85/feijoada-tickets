@@ -441,6 +441,59 @@ body::after {
   letter-spacing: -0.5px;
 }
 
+/* CARD DE PAGAMENTO PADRÃO EM DINHEIRO COM SELETOR DE DATA */
+.payment-cash-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+}
+
+.payment-cash-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-cash-badge {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.btn-calendar-trigger {
+  background: white;
+  border: 1.5px solid #fed7aa;
+  color: #c2410c;
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.08);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-calendar-trigger:active {
+  transform: scale(0.96);
+  background: #fff7ed;
+}
+
 /* CARD DE QR CODE GERADO COM SUCESSO (DESTAQUE DA COMPRA) */
 .ticket-success-card {
   background: white;

@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupScanner();
   setupSalesForm();
   setupEditForm();
+  setupCalendarModal();
   setupSSE();
 });
 
@@ -215,15 +216,20 @@ function setupSalesForm() {
     updateSalesTotal();
   }
 
-  // Seletor de forma de pagamento
-  paymentChips.forEach(chip => {
-    chip.addEventListener('click', () => {
+  // Inicializar data padrão de pagamento como hoje
+  const todayIso = new Date().toISOString().split('T')[0];
+  const salesPayDateHidden = document.getElementById('payment_date');
+  if (salesPayDateHidden && !salesPayDateHidden.value) {
+    salesPayDateHidden.value = todayIso;
+  }
+
+  const btnOpenCalendarSales = document.getElementById('btn-open-calendar-sales');
+  if (btnOpenCalendarSales) {
+    btnOpenCalendarSales.addEventListener('click', () => {
       triggerHaptic('light');
-      paymentChips.forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      methodHidden.value = chip.getAttribute('data-method');
+      openCalendarModal('sales', salesPayDateHidden ? salesPayDateHidden.value : todayIso);
     });
-  });
+  }
 
   // Submissão da Nova Compra
   form.addEventListener('submit', async (e) => {
@@ -236,8 +242,9 @@ function setupSalesForm() {
       buyer_name: document.getElementById('buyer_name').value.trim(),
       buyer_phone: document.getElementById('buyer_phone').value.trim(),
       quantity: parseInt(qtyHidden.value, 10) || 1,
-      payment_method: methodHidden.value,
+      payment_method: 'dinheiro',
       payment_status: 'pago',
+      payment_date: (salesPayDateHidden ? salesPayDateHidden.value : '') || todayIso,
       notes: document.getElementById('ticket_notes').value.trim()
     };
 
@@ -688,6 +695,9 @@ async function loadTickets() {
               Código: <strong style="color: #c2410c;">${t.code}</strong> • 
               <strong>${t.quantity} porção(ões)</strong> • ${formatMoney(t.total_price)}
             </div>
+            <div style="font-size: 0.75rem; color: #15803d; font-weight: 700; margin-top: 2px;">
+              💵 Dinheiro ${t.payment_date ? `• Pago em: ${formatDatePretty(t.payment_date)}` : (t.payment_status === 'pago' ? '• Pago' : '• Pendente')}
+            </div>
             ${t.buyer_phone ? `<div style="font-size: 0.75rem; color: var(--text-light); margin-top: 2px;">📱 ${escapeHtml(t.buyer_phone)}</div>` : ''}
           </div>
 
@@ -827,8 +837,8 @@ function populateEditForm(ticket) {
   // PAGAMENTO: Status (pago / pendente)
   setEditPaymentStatus(ticket.payment_status || 'pago');
 
-  // PAGAMENTO: Forma (dinheiro, paypay, transferencia, cartao)
-  setEditPaymentMethod(ticket.payment_method || 'dinheiro');
+  // PAGAMENTO: Data de Pagamento (padrão em Dinheiro)
+  setEditPaymentDate(ticket.payment_date || '');
 
   formContainer.scrollIntoView({ behavior: 'smooth' });
 }
@@ -884,13 +894,13 @@ function setEditPaymentStatus(status) {
   });
 }
 
-function setEditPaymentMethod(method) {
-  document.getElementById('edit_payment_method').value = method;
-  const chips = document.querySelectorAll('[data-editmethod]');
-  chips.forEach(c => {
-    const m = c.getAttribute('data-editmethod');
-    c.classList.toggle('active', m === method);
-  });
+function setEditPaymentDate(dateStr) {
+  const inputHidden = document.getElementById('edit_payment_date');
+  const labelText = document.getElementById('edit-paydate-text');
+  if (inputHidden) inputHidden.value = dateStr || '';
+  if (labelText) {
+    labelText.textContent = dateStr ? formatDatePretty(dateStr) : 'Não informada';
+  }
 }
 
 function setupEditForm() {
@@ -976,15 +986,15 @@ function setupEditForm() {
     });
   }
 
-  // Chips de Método de Pagamento
-  const methodChips = document.querySelectorAll('[data-editmethod]');
-  methodChips.forEach(chip => {
-    chip.addEventListener('click', () => {
+  // Botão de Calendário para Data de Pagamento na Edição
+  const btnOpenCalendarEdit = document.getElementById('btn-open-calendar-edit');
+  if (btnOpenCalendarEdit) {
+    btnOpenCalendarEdit.addEventListener('click', () => {
       triggerHaptic('light');
-      const method = chip.getAttribute('data-editmethod');
-      setEditPaymentMethod(method);
+      const curDate = document.getElementById('edit_payment_date')?.value || new Date().toISOString().split('T')[0];
+      openCalendarModal('edit', curDate);
     });
-  });
+  }
 
   // Salvar Alterações
   if (form) {
@@ -1002,7 +1012,8 @@ function setupEditForm() {
         quantity: parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1,
         delivered_quantity: parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0,
         payment_status: document.getElementById('edit_payment_status').value,
-        payment_method: document.getElementById('edit_payment_method').value,
+        payment_method: 'dinheiro',
+        payment_date: document.getElementById('edit_payment_date')?.value || '',
         notes: document.getElementById('edit-notes').value.trim()
       };
 
@@ -1073,6 +1084,113 @@ function setupEditForm() {
       } catch (err) {
         alert('Erro de comunicação ao cancelar o vale.');
       }
+    });
+  }
+}
+
+// ==================== CALENDÁRIO POP-UP PARA DATA DE PAGAMENTO ====================
+let calendarContext = 'sales'; // 'sales' ou 'edit'
+
+function formatDatePretty(isoDate) {
+  if (!isoDate) return '';
+  const parts = isoDate.split('-');
+  if (parts.length === 3) {
+    const y = parts[0];
+    const m = parts[1];
+    const d = parts[2];
+    const today = new Date().toISOString().split('T')[0];
+    if (isoDate === today) return `Hoje (${d}/${m}/${y})`;
+    return `${d}/${m}/${y}`;
+  }
+  return isoDate;
+}
+
+function openCalendarModal(context, initialDate) {
+  calendarContext = context;
+  const modal = document.getElementById('calendar-modal');
+  const dateInput = document.getElementById('calendar-date-picker');
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const dateToUse = initialDate || todayStr;
+  if (dateInput) dateInput.value = dateToUse;
+
+  if (modal) modal.classList.add('active');
+}
+
+function closeCalendarModal() {
+  const modal = document.getElementById('calendar-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function setupCalendarModal() {
+  const modal = document.getElementById('calendar-modal');
+  const btnClose = document.getElementById('btn-close-calendar');
+  const btnCancel = document.getElementById('btn-cancel-calendar-modal');
+  const btnConfirm = document.getElementById('btn-confirm-calendar-date');
+  const dateInput = document.getElementById('calendar-date-picker');
+
+  const btnToday = document.getElementById('btn-date-shortcut-today');
+  const btnYesterday = document.getElementById('btn-date-shortcut-yesterday');
+  const btnEvent = document.getElementById('btn-date-shortcut-event');
+
+  if (btnClose) btnClose.addEventListener('click', closeCalendarModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeCalendarModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeCalendarModal();
+    });
+  }
+
+  // Atalho Hoje
+  if (btnToday) {
+    btnToday.addEventListener('click', () => {
+      triggerHaptic('light');
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (dateInput) dateInput.value = todayStr;
+    });
+  }
+
+  // Atalho Ontem
+  if (btnYesterday) {
+    btnYesterday.addEventListener('click', () => {
+      triggerHaptic('light');
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yStr = d.toISOString().split('T')[0];
+      if (dateInput) dateInput.value = yStr;
+    });
+  }
+
+  // Atalho Dia do Evento
+  if (btnEvent) {
+    btnEvent.addEventListener('click', () => {
+      triggerHaptic('light');
+      const evDate = eventConfig.event_date || '2026-10-18';
+      if (dateInput) dateInput.value = evDate;
+    });
+  }
+
+  // Confirmar Seleção
+  if (btnConfirm) {
+    btnConfirm.addEventListener('click', () => {
+      triggerHaptic('success');
+      const selectedDate = dateInput ? dateInput.value : '';
+      if (!selectedDate) {
+        alert('Por favor, selecione uma data no calendário.');
+        return;
+      }
+
+      if (calendarContext === 'sales') {
+        const salesHidden = document.getElementById('payment_date');
+        const salesText = document.getElementById('sales-paydate-text');
+        if (salesHidden) salesHidden.value = selectedDate;
+        if (salesText) salesText.textContent = formatDatePretty(selectedDate);
+      } else if (calendarContext === 'edit') {
+        setEditPaymentDate(selectedDate);
+      }
+
+      closeCalendarModal();
     });
   }
 }
