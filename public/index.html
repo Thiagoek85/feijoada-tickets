@@ -317,6 +317,170 @@
       </div>
     </section>
 
+    <!-- ==================== ABA 5: AJUSTES / EDIÇÃO DE VALE ==================== -->
+    <section id="tab-edit" class="tab-pane">
+      <div class="glass-card">
+        <div class="glass-card-title">
+          <span>✏️ Ajustar / Editar Vale</span>
+          <span style="font-size: 0.8rem; font-weight: 600; color: #ea580c;">Entrada, Saída e Pagamento</span>
+        </div>
+
+        <!-- Seletor / Busca de Vale para Edição -->
+        <div class="form-group-glass">
+          <label for="edit-search-input">🔍 Selecionar Vale para Edição:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="edit-search-input" class="input-glass" placeholder="Digite código (ex: FEIJ-1001) ou nome..." autocomplete="off">
+            <button type="button" id="btn-edit-load" class="btn-glass btn-secondary-glass" style="width: auto; padding: 0 18px;">
+              Carregar
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulário de Edição (Aparece quando um vale é carregado) -->
+        <div id="edit-form-container" style="display: none;">
+          <div style="background: rgba(234, 88, 12, 0.08); border: 1.5px solid #fed7aa; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.75rem; color: #9a3412; font-weight: 800; text-transform: uppercase;">EDITANDO CÓDIGO</div>
+              <div id="edit-badge-code" style="font-family: monospace; font-size: 1.4rem; font-weight: 900; color: #c2410c;">FEIJ-0000</div>
+            </div>
+            <div id="edit-badge-status" class="ticket-item-badge badge-ativo" style="font-size: 0.82rem; padding: 6px 12px;">ATIVO</div>
+          </div>
+
+          <form id="form-edit-ticket">
+            <!-- Nome e Telefone -->
+            <div class="form-group-glass">
+              <label for="edit-buyer-name">👤 Nome do Comprador *</label>
+              <input type="text" id="edit-buyer-name" class="input-glass" required autocomplete="off">
+            </div>
+
+            <div class="form-group-glass">
+              <label for="edit-buyer-phone">📱 WhatsApp / Celular</label>
+              <input type="tel" id="edit-buyer-phone" class="input-glass">
+            </div>
+
+            <!-- ENTRADA: Quantidade Comprada -->
+            <div class="form-group-glass" style="background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="margin: 0; font-weight: 800; color: #1c1917;">🍲 ENTRADA (Quantidade Comprada)</label>
+                <span id="edit-total-preview" style="font-weight: 900; font-size: 1.15rem; color: #c2410c;">¥ 1.000</span>
+              </div>
+              <div class="stepper-container">
+                <button type="button" class="stepper-btn" id="btn-edit-qty-minus">−</button>
+                <div class="stepper-value-box">
+                  <div class="stepper-value" id="edit-qty-display">1</div>
+                  <div class="stepper-label">porção(ões) total</div>
+                </div>
+                <button type="button" class="stepper-btn" id="btn-edit-qty-plus">+</button>
+              </div>
+              <input type="hidden" id="edit_ticket_quantity" value="1">
+            </div>
+
+            <!-- SAÍDA: Quantidade Entregue -->
+            <div class="form-group-glass" style="background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="margin: 0; font-weight: 800; color: #15803d;">✅ SAÍDA (Quantidade Já Entregue)</label>
+                <span id="edit-remaining-preview" style="font-weight: 800; font-size: 0.85rem; color: #d97706;">Resta 1 porção</span>
+              </div>
+              <div class="stepper-container">
+                <button type="button" class="stepper-btn" id="btn-edit-delivered-minus">−</button>
+                <div class="stepper-value-box">
+                  <div class="stepper-value" id="edit-delivered-display" style="color: #15803d;">0</div>
+                  <div class="stepper-label">porção(ões) entregues</div>
+                </div>
+                <button type="button" class="stepper-btn" id="btn-edit-delivered-plus">+</button>
+              </div>
+              <input type="hidden" id="edit_delivered_quantity" value="0">
+
+              <!-- Atalhos rápidos de Saída -->
+              <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button type="button" id="btn-edit-reset-delivered" class="btn-glass btn-secondary-glass" style="min-height: 40px; padding: 6px 12px; font-size: 0.8rem; flex: 1;">
+                  🔄 Zerar Saída (0)
+                </button>
+                <button type="button" id="btn-edit-complete-delivered" class="btn-glass btn-success-glass" style="min-height: 40px; padding: 6px 12px; font-size: 0.8rem; flex: 1;">
+                  🍲 Marcar Tudo Entregue
+                </button>
+              </div>
+            </div>
+
+            <!-- PAGAMENTO: Status do Pagamento -->
+            <div class="form-group-glass">
+              <label>💳 Status do Pagamento</label>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                <div class="payment-chip active" id="chip-status-pago" data-paystatus="pago">
+                  <span class="payment-chip-icon">🟢</span>
+                  <div class="payment-chip-info">
+                    <span class="payment-chip-name">Pago</span>
+                    <span class="payment-chip-desc">Confirmado</span>
+                  </div>
+                </div>
+                <div class="payment-chip" id="chip-status-pendente" data-paystatus="pendente">
+                  <span class="payment-chip-icon">🟡</span>
+                  <div class="payment-chip-info">
+                    <span class="payment-chip-name">Pendente</span>
+                    <span class="payment-chip-desc">Pagar na Entrega</span>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="edit_payment_status" value="pago">
+            </div>
+
+            <!-- PAGAMENTO: Forma de Pagamento -->
+            <div class="form-group-glass">
+              <label>💵 Forma de Pagamento</label>
+              <div class="payment-grid-glass">
+                <div class="payment-chip active" id="chip-method-dinheiro" data-editmethod="dinheiro">
+                  <span class="payment-chip-icon">💵</span>
+                  <span class="payment-chip-name">Dinheiro</span>
+                </div>
+                <div class="payment-chip" id="chip-method-paypay" data-editmethod="paypay">
+                  <span class="payment-chip-icon">📱</span>
+                  <span class="payment-chip-name">PayPay</span>
+                </div>
+                <div class="payment-chip" id="chip-method-transferencia" data-editmethod="transferencia">
+                  <span class="payment-chip-icon">🏦</span>
+                  <span class="payment-chip-name">Yucho/Banco</span>
+                </div>
+                <div class="payment-chip" id="chip-method-cartao" data-editmethod="cartao">
+                  <span class="payment-chip-icon">💳</span>
+                  <span class="payment-chip-name">Cartão</span>
+                </div>
+              </div>
+              <input type="hidden" id="edit_payment_method" value="dinheiro">
+            </div>
+
+            <!-- Observações -->
+            <div class="form-group-glass">
+              <label for="edit-notes">📝 Observações</label>
+              <input type="text" id="edit-notes" class="input-glass" placeholder="Observações de cozinha ou pagamento...">
+            </div>
+
+            <!-- Botões Grandes de Salvar e Cancelar -->
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+              <button type="submit" id="btn-save-edit" class="btn-glass btn-success-glass btn-large-hero">
+                💾 SALVAR ALTERAÇÕES DO VALE
+              </button>
+              
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="btn-view-qr-from-edit" class="btn-glass btn-primary-glass" style="flex: 1;">
+                  👁️ Ver QR Code
+                </button>
+                <button type="button" id="btn-cancel-ticket-action" class="btn-glass btn-secondary-glass" style="flex: 1; color: #dc2626; border-color: #fca5a5;">
+                  🗑️ Cancelar Vale
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div id="edit-empty-state" style="text-align: center; color: var(--text-muted); padding: 36px 16px;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">📋</div>
+          <strong>Nenhum vale em edição</strong><br>
+          Digite o código acima ou clique em <strong>"✏️ Ajustar"</strong> na aba Vales.
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <!-- ==================== DOCK DE NAVEGAÇÃO INFERIOR ESTILO IPHONE ==================== -->
@@ -328,6 +492,10 @@
     <button type="button" class="dock-item" data-tab="tab-scanner">
       <span class="dock-item-icon">📷</span>
       <span class="dock-item-label">Escanear</span>
+    </button>
+    <button type="button" class="dock-item" data-tab="tab-edit">
+      <span class="dock-item-icon">✏️</span>
+      <span class="dock-item-label">Ajustes</span>
     </button>
     <button type="button" class="dock-item" data-tab="tab-dashboard">
       <span class="dock-item-icon">📊</span>

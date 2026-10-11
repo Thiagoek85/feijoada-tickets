@@ -455,6 +455,115 @@ app.post('/api/tickets/:code/deliver', (req, res) => {
   }
 });
 
+// Atualizar / Editar Ticket (Entrada, Saída, Pagamento, Dados)
+app.put('/api/tickets/:code', (req, res) => {
+  try {
+    const code = req.params.code.trim().toUpperCase();
+    const ticket = db.prepare('SELECT * FROM tickets WHERE code = ?').get(code);
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket não encontrado.' });
+    }
+
+    const {
+      buyer_name,
+      buyer_phone,
+      quantity,
+      delivered_quantity,
+      payment_method,
+      payment_status,
+      status,
+      notes
+    } = req.body;
+
+    const newName = buyer_name !== undefined ? buyer_name.trim() : ticket.buyer_name;
+    const newPhone = buyer_phone !== undefined ? buyer_phone.trim() : ticket.buyer_phone;
+    const newQty = quantity !== undefined ? Math.max(1, parseInt(quantity, 10)) : ticket.quantity;
+    
+    // Saída / Quantidade entregue
+    let newDelivered = delivered_quantity !== undefined ? Math.max(0, parseInt(delivered_quantity, 10)) : ticket.delivered_quantity;
+    if (newDelivered > newQty) {
+      newDelivered = newQty;
+    }
+
+    const newTotalPrice = newQty * ticket.unit_price;
+    const newPayMethod = payment_method !== undefined ? payment_method : ticket.payment_method;
+    const newPayStatus = payment_status !== undefined ? payment_status : ticket.payment_status;
+    const newNotes = notes !== undefined ? notes.trim() : ticket.notes;
+
+    // Calcular novo status
+    let calculatedStatus = ticket.status;
+    if (status !== undefined) {
+      calculatedStatus = status;
+    } else {
+      if (newDelivered >= newQty) {
+        calculatedStatus = 'entregue';
+      } else if (newDelivered > 0) {
+        calculatedStatus = 'parcial';
+      } else {
+        calculatedStatus = 'ativo';
+      }
+    }
+
+    db.prepare(`
+      UPDATE tickets 
+      SET buyer_name = ?,
+          buyer_phone = ?,
+          quantity = ?,
+          delivered_quantity = ?,
+          total_price = ?,
+          payment_method = ?,
+          payment_status = ?,
+          status = ?,
+          notes = ?,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = ?
+    `).run(
+      newName,
+      newPhone,
+      newQty,
+      newDelivered,
+      newTotalPrice,
+      newPayMethod,
+      newPayStatus,
+      calculatedStatus,
+      newNotes,
+      ticket.id
+    );
+
+    const updated = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticket.id);
+
+    broadcastEvent('ticket_updated', updated);
+
+    res.json({
+      success: true,
+      message: 'Vale atualizado com sucesso!',
+      ticket: updated
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancelar Ticket
+app.delete('/api/tickets/:code', (req, res) => {
+  try {
+    const code = req.params.code.trim().toUpperCase();
+    const ticket = db.prepare('SELECT * FROM tickets WHERE code = ?').get(code);
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket não encontrado.' });
+    }
+
+    db.prepare("UPDATE tickets SET status = 'cancelado', updated_at = datetime('now', 'localtime') WHERE id = ?").run(ticket.id);
+    broadcastEvent('ticket_updated', { ...ticket, status: 'cancelado' });
+
+    res.json({ success: true, message: 'Vale cancelado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Exportar CSV completo para prestação de contas da paróquia (formato Ienes)
 app.get('/api/export/csv', (req, res) => {
   try {

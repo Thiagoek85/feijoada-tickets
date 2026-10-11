@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTickets();
   setupScanner();
   setupSalesForm();
+  setupEditForm();
   setupSSE();
 });
 
@@ -151,7 +152,7 @@ function setupSSE() {
     const evtSource = new EventSource(BASE_PATH + '/api/events');
     evtSource.onmessage = (event) => {
       const parsed = JSON.parse(event.data);
-      if (['ticket_delivered', 'ticket_created', 'batch_created'].includes(parsed.type)) {
+      if (['ticket_delivered', 'ticket_created', 'ticket_updated', 'batch_created'].includes(parsed.type)) {
         loadStats();
         if (document.getElementById('tab-list').classList.contains('active')) {
           loadTickets();
@@ -690,10 +691,15 @@ async function loadTickets() {
             ${t.buyer_phone ? `<div style="font-size: 0.75rem; color: var(--text-light); margin-top: 2px;">📱 ${escapeHtml(t.buyer_phone)}</div>` : ''}
           </div>
 
-          <!-- Botão Grande para Acessar o QR Code Gerado -->
-          <button type="button" class="btn-glass btn-primary-glass" style="width: auto; min-height: 44px; padding: 0 16px; font-size: 0.85rem;" onclick="viewTicketQr('${t.code}')">
-            👁️ QR Code
-          </button>
+          <!-- Botões Rápidos de Ação: Ver QR e Ajustar -->
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button type="button" class="btn-glass btn-primary-glass" style="width: auto; min-height: 42px; padding: 0 12px; font-size: 0.8rem;" onclick="viewTicketQr('${t.code}')">
+              👁️ QR
+            </button>
+            <button type="button" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 42px; padding: 0 12px; font-size: 0.8rem;" onclick="openEditTab('${t.code}')">
+              ✏️ Ajustar
+            </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -764,9 +770,317 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+// ==================== ABA 5: AJUSTES / EDIÇÃO DE VALE ====================
+let currentEditTicket = null;
+
+function openEditTab(code) {
+  triggerHaptic('light');
+  switchTab('tab-edit');
+  const searchInput = document.getElementById('edit-search-input');
+  if (searchInput) searchInput.value = code;
+  loadTicketToEdit(code);
+}
+
+async function loadTicketToEdit(codeOrQuery) {
+  if (!codeOrQuery) return;
+  const cleanCode = codeOrQuery.trim().toUpperCase();
+
+  try {
+    const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(cleanCode)}`);
+    if (!res.ok) {
+      alert(`Vale "${cleanCode}" não encontrado.`);
+      return;
+    }
+    const ticket = await res.json();
+    populateEditForm(ticket);
+  } catch (err) {
+    console.error('Erro ao buscar ticket para edição:', err);
+    alert('Erro ao carregar dados do vale.');
+  }
+}
+
+function populateEditForm(ticket) {
+  currentEditTicket = ticket;
+
+  // Atualizar visibilidade dos containers
+  document.getElementById('edit-empty-state').style.display = 'none';
+  const formContainer = document.getElementById('edit-form-container');
+  formContainer.style.display = 'block';
+
+  // Badges e Header
+  document.getElementById('edit-badge-code').textContent = ticket.code;
+  const badgeStatus = document.getElementById('edit-badge-status');
+  badgeStatus.textContent = (ticket.status || 'ativo').toUpperCase();
+  badgeStatus.className = `ticket-item-badge badge-${ticket.status || 'ativo'}`;
+
+  // Campos básicos
+  document.getElementById('edit-buyer-name').value = ticket.buyer_name || '';
+  document.getElementById('edit-buyer-phone').value = ticket.buyer_phone || '';
+  document.getElementById('edit-notes').value = ticket.notes || '';
+
+  // ENTRADA: Quantidade comprada
+  setEditQuantity(ticket.quantity || 1);
+
+  // SAÍDA: Quantidade entregue
+  setEditDelivered(ticket.delivered_quantity || 0);
+
+  // PAGAMENTO: Status (pago / pendente)
+  setEditPaymentStatus(ticket.payment_status || 'pago');
+
+  // PAGAMENTO: Forma (dinheiro, paypay, transferencia, cartao)
+  setEditPaymentMethod(ticket.payment_method || 'dinheiro');
+
+  formContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+function setEditQuantity(qty) {
+  const q = Math.max(1, parseInt(qty, 10) || 1);
+  document.getElementById('edit_ticket_quantity').value = q;
+  document.getElementById('edit-qty-display').textContent = q;
+
+  const unitPrice = currentEditTicket ? currentEditTicket.unit_price : (eventConfig.unit_price || 1000);
+  const total = q * unitPrice;
+  document.getElementById('edit-total-preview').textContent = formatMoney(total);
+
+  // Revalidar limite de saída
+  const currentDelivered = parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0;
+  if (currentDelivered > q) {
+    setEditDelivered(q);
+  } else {
+    updateEditRemainingPreview();
+  }
+}
+
+function setEditDelivered(qty) {
+  const maxQty = parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1;
+  const d = Math.max(0, Math.min(maxQty, parseInt(qty, 10) || 0));
+  document.getElementById('edit_delivered_quantity').value = d;
+  document.getElementById('edit-delivered-display').textContent = d;
+  updateEditRemainingPreview();
+}
+
+function updateEditRemainingPreview() {
+  const qty = parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1;
+  const delivered = parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0;
+  const remaining = Math.max(0, qty - delivered);
+  const previewEl = document.getElementById('edit-remaining-preview');
+
+  if (remaining === 0) {
+    previewEl.textContent = 'Tudo entregue (0 restante)';
+    previewEl.style.color = '#15803d';
+  } else {
+    previewEl.textContent = `Resta ${remaining} porção(ões)`;
+    previewEl.style.color = '#d97706';
+  }
+}
+
+function setEditPaymentStatus(status) {
+  document.getElementById('edit_payment_status').value = status;
+  const chips = [document.getElementById('chip-status-pago'), document.getElementById('chip-status-pendente')];
+  chips.forEach(c => {
+    if (!c) return;
+    const s = c.getAttribute('data-paystatus');
+    c.classList.toggle('active', s === status);
+  });
+}
+
+function setEditPaymentMethod(method) {
+  document.getElementById('edit_payment_method').value = method;
+  const chips = document.querySelectorAll('[data-editmethod]');
+  chips.forEach(c => {
+    const m = c.getAttribute('data-editmethod');
+    c.classList.toggle('active', m === method);
+  });
+}
+
+function setupEditForm() {
+  const loadBtn = document.getElementById('btn-edit-load');
+  const searchInput = document.getElementById('edit-search-input');
+  const form = document.getElementById('form-edit-ticket');
+
+  if (loadBtn && searchInput) {
+    loadBtn.addEventListener('click', () => {
+      const code = searchInput.value.trim();
+      if (code) loadTicketToEdit(code);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const code = searchInput.value.trim();
+        if (code) loadTicketToEdit(code);
+      }
+    });
+  }
+
+  // Steppers Entrada (+) e (-)
+  const btnQtyMinus = document.getElementById('btn-edit-qty-minus');
+  const btnQtyPlus = document.getElementById('btn-edit-qty-plus');
+  if (btnQtyMinus && btnQtyPlus) {
+    btnQtyMinus.addEventListener('click', () => {
+      triggerHaptic('light');
+      const cur = parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1;
+      if (cur > 1) setEditQuantity(cur - 1);
+    });
+    btnQtyPlus.addEventListener('click', () => {
+      triggerHaptic('light');
+      const cur = parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1;
+      if (cur < 200) setEditQuantity(cur + 1);
+    });
+  }
+
+  // Steppers Saída (+) e (-)
+  const btnDeliveredMinus = document.getElementById('btn-edit-delivered-minus');
+  const btnDeliveredPlus = document.getElementById('btn-edit-delivered-plus');
+  if (btnDeliveredMinus && btnDeliveredPlus) {
+    btnDeliveredMinus.addEventListener('click', () => {
+      triggerHaptic('light');
+      const cur = parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0;
+      if (cur > 0) setEditDelivered(cur - 1);
+    });
+    btnDeliveredPlus.addEventListener('click', () => {
+      triggerHaptic('light');
+      const cur = parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0;
+      setEditDelivered(cur + 1);
+    });
+  }
+
+  // Botões rápidos de Saída (Zerar ou Marcar Tudo)
+  const btnResetDelivered = document.getElementById('btn-edit-reset-delivered');
+  const btnCompleteDelivered = document.getElementById('btn-edit-complete-delivered');
+  if (btnResetDelivered) {
+    btnResetDelivered.addEventListener('click', () => {
+      triggerHaptic('light');
+      setEditDelivered(0);
+    });
+  }
+  if (btnCompleteDelivered) {
+    btnCompleteDelivered.addEventListener('click', () => {
+      triggerHaptic('light');
+      const totalQty = parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1;
+      setEditDelivered(totalQty);
+    });
+  }
+
+  // Chips de Status de Pagamento
+  const chipStatusPago = document.getElementById('chip-status-pago');
+  const chipStatusPendente = document.getElementById('chip-status-pendente');
+  if (chipStatusPago && chipStatusPendente) {
+    chipStatusPago.addEventListener('click', () => {
+      triggerHaptic('light');
+      setEditPaymentStatus('pago');
+    });
+    chipStatusPendente.addEventListener('click', () => {
+      triggerHaptic('light');
+      setEditPaymentStatus('pendente');
+    });
+  }
+
+  // Chips de Método de Pagamento
+  const methodChips = document.querySelectorAll('[data-editmethod]');
+  methodChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      triggerHaptic('light');
+      const method = chip.getAttribute('data-editmethod');
+      setEditPaymentMethod(method);
+    });
+  });
+
+  // Salvar Alterações
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentEditTicket) return;
+
+      const btnSave = document.getElementById('btn-save-edit');
+      btnSave.disabled = true;
+      btnSave.textContent = '⏳ Salvando Alterações...';
+
+      const payload = {
+        buyer_name: document.getElementById('edit-buyer-name').value.trim(),
+        buyer_phone: document.getElementById('edit-buyer-phone').value.trim(),
+        quantity: parseInt(document.getElementById('edit_ticket_quantity').value, 10) || 1,
+        delivered_quantity: parseInt(document.getElementById('edit_delivered_quantity').value, 10) || 0,
+        payment_status: document.getElementById('edit_payment_status').value,
+        payment_method: document.getElementById('edit_payment_method').value,
+        notes: document.getElementById('edit-notes').value.trim()
+      };
+
+      try {
+        const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(currentEditTicket.code)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          playSuccessSound();
+          alert('✅ Vale atualizado com sucesso!');
+          currentEditTicket = data.ticket;
+          populateEditForm(data.ticket);
+          loadStats();
+          loadTickets();
+        } else {
+          playErrorSound();
+          alert(`Erro: ${data.error || 'Falha ao atualizar o vale'}`);
+        }
+      } catch (err) {
+        playErrorSound();
+        console.error(err);
+        alert('Erro de conexão ao salvar alterações.');
+      } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = '💾 SALVAR ALTERAÇÕES DO VALE';
+      }
+    });
+  }
+
+  // Botão Ver QR Code a partir da edição
+  const btnViewQr = document.getElementById('btn-view-qr-from-edit');
+  if (btnViewQr) {
+    btnViewQr.addEventListener('click', () => {
+      if (currentEditTicket) {
+        viewTicketQr(currentEditTicket.code);
+      }
+    });
+  }
+
+  // Botão Cancelar Vale
+  const btnCancel = document.getElementById('btn-cancel-ticket-action');
+  if (btnCancel) {
+    btnCancel.addEventListener('click', async () => {
+      if (!currentEditTicket) return;
+      const ok = confirm(`Tem certeza que deseja cancelar o vale ${currentEditTicket.code} de ${currentEditTicket.buyer_name}?`);
+      if (!ok) return;
+
+      try {
+        const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(currentEditTicket.code)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (res.ok) {
+          playSuccessSound();
+          alert('🗑️ Vale cancelado com sucesso.');
+          document.getElementById('edit-badge-status').textContent = 'CANCELADO';
+          document.getElementById('edit-badge-status').className = 'ticket-item-badge';
+          document.getElementById('edit-badge-status').style.background = '#6b7280';
+          loadStats();
+          loadTickets();
+        } else {
+          alert(`Erro: ${data.error || 'Não foi possível cancelar o vale'}`);
+        }
+      } catch (err) {
+        alert('Erro de comunicação ao cancelar o vale.');
+      }
+    });
+  }
+}
+
 // Registro PWA (Service Worker para Android e iOS)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+
