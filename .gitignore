@@ -1,0 +1,22 @@
+# Dependências
+node_modules/
+
+# Logs e arquivos de processo
+*.log
+server.log
+server.pid
+*.pid
+
+# Certificados SSL locais
+certs/*.key
+certs/*.crt
+certs/
+
+# Banco de dados e arquivos temporários SQLite
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db

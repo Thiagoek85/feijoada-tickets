@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Vale Feijoada - App do Colaborador</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Topo Estilo iOS Glass -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="header-title-box">
+        <div class="app-icon-badge">🍲</div>
+        <div>
+          <h1 id="app-event-name">Vale Feijoada</h1>
+          <span id="app-event-info">Painel do Colaborador • Paróquia</span>
+        </div>
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>ONLINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-container">
+
+    <!-- ==================== ABA 1: ADICIONAR COMPRA (NOVA VENDA) ==================== -->
+    <section id="tab-sales" class="tab-pane active">
+      <div class="glass-card">
+        <div class="glass-card-title">
+          <span>➕ Adicionar Compra</span>
+          <span style="font-size: 0.8rem; font-weight: 600; color: #ea580c;">Gera QR Code na hora</span>
+        </div>
+
+        <form id="form-new-ticket">
+          
+          <!-- Nome do Comprador -->
+          <div class="form-group-glass">
+            <label for="buyer_name">👤 Nome do Comprador / Família *</label>
+            <input type="text" id="buyer_name" class="input-glass" placeholder="Ex: Tanaka / Família Silva" required autocomplete="off">
+          </div>
+
+          <!-- Celular / WhatsApp -->
+          <div class="form-group-glass">
+            <label for="buyer_phone">📱 WhatsApp / Celular no Japão</label>
+            <input type="tel" id="buyer_phone" class="input-glass" placeholder="Ex: 090-1234-5678 ou 11987654321">
+          </div>
+
+          <!-- Seletor de Quantidade Stepper Tátil -->
+          <div class="form-group-glass">
+            <label>🍲 Quantidade de Feijoadas</label>
+            <div class="stepper-container">
+              <button type="button" class="stepper-btn" id="btn-qty-minus">−</button>
+              <div class="stepper-value-box">
+                <div class="stepper-value" id="stepper-display">1</div>
+                <div class="stepper-label">porção(ões)</div>
+              </div>
+              <button type="button" class="stepper-btn" id="btn-qty-plus">+</button>
+            </div>
+            <input type="hidden" id="ticket_quantity" value="1">
+
+            <!-- Atalhos de Quantidade Rápida -->
+            <div class="qty-chips">
+              <div class="qty-chip active" data-qty="1">1 Porção</div>
+              <div class="qty-chip" data-qty="2">2 Porções</div>
+              <div class="qty-chip" data-qty="3">3 Porções</div>
+              <div class="qty-chip" data-qty="4">4 Porções</div>
+            </div>
+          </div>
+
+          <!-- Seletor de Pagamento em Botões Grandes -->
+          <div class="form-group-glass">
+            <label>💳 Forma de Pagamento</label>
+            <div class="payment-grid-glass">
+              <div class="payment-chip active" data-method="dinheiro">
+                <span class="payment-chip-icon">💵</span>
+                <div class="payment-chip-info">
+                  <span class="payment-chip-name">Dinheiro</span>
+                  <span class="payment-chip-desc">¥ Espécie</span>
+                </div>
+              </div>
+
+              <div class="payment-chip" data-method="paypay">
+                <span class="payment-chip-icon">📱</span>
+                <div class="payment-chip-info">
+                  <span class="payment-chip-name">PayPay</span>
+                  <span class="payment-chip-desc">QR Code App</span>
+                </div>
+              </div>
+
+              <div class="payment-chip" data-method="transferencia">
+                <span class="payment-chip-icon">🏦</span>
+                <div class="payment-chip-info">
+                  <span class="payment-chip-name">Yucho / Banco</span>
+                  <span class="payment-chip-desc">Transferência</span>
+                </div>
+              </div>
+
+              <div class="payment-chip" data-method="cartao">
+                <span class="payment-chip-icon">💳</span>
+                <div class="payment-chip-info">
+                  <span class="payment-chip-name">Cartão</span>
+                  <span class="payment-chip-desc">Crédito/Débito</span>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="payment_method" value="dinheiro">
+            <input type="hidden" id="payment_status" value="pago">
+          </div>
+
+          <!-- Observações -->
+          <div class="form-group-glass">
+            <label for="ticket_notes">📝 Observações da Cozinha (Opcional)</label>
+            <input type="text" id="ticket_notes" class="input-glass" placeholder="Ex: Viagem, sem couve, entrega às 12:30">
+          </div>
+
+          <!-- Banner do Total a Pagar -->
+          <div class="price-banner-glass">
+            <span class="price-banner-label">Total a Cobrar:</span>
+            <span class="price-banner-value" id="calculated-total">¥ 1.500</span>
+          </div>
+
+          <!-- Botão Gigante de Finalizar -->
+          <button type="submit" id="btn-submit-sale" class="btn-glass btn-primary-glass btn-large-hero">
+            <span>🍲 CONFIRMAR COMPRA & GERAR VALE</span>
+          </button>
+        </form>
+
+        <!-- CARD DO QR CODE GERADO COM SUCESSO -->
+        <div id="ticket-success-box" class="ticket-success-card">
+          <div style="font-size: 2.2rem; margin-bottom: 4px;">🎉</div>
+          <h2 style="font-size: 1.3rem; font-weight: 800; color: #16a34a;">Compra Registrada!</h2>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 2px;">Apresente este QR Code ou envie no WhatsApp do cliente:</p>
+
+          <div class="ticket-success-qr">
+            <img id="success-qr-img" src="" alt="QR Code">
+          </div>
+
+          <div class="ticket-success-code" id="success-code">FEIJ-0000</div>
+          <div style="font-size: 1.15rem; font-weight: 800; color: #1c1917; margin-top: 4px;" id="success-buyer">Nome</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #c2410c; margin-bottom: 16px;" id="success-qty">1 Porção • ¥ 1.500</div>
+
+          <!-- Botões Grandes de Ação do Ticket Gerado -->
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" id="btn-share-whatsapp-direct" class="btn-glass btn-success-glass">
+              📱 Enviar Vale no WhatsApp do Cliente
+            </button>
+            <a id="btn-open-ticket-direct" href="#" target="_blank" class="btn-glass btn-blue-glass">
+              🔗 Abrir Link do Vale Digital
+            </a>
+            <button type="button" id="btn-new-sale-reset" class="btn-glass btn-secondary-glass">
+              ➕ Adicionar Outra Compra
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== ABA 2: LEITOR QR CODE (SCANNER) ==================== -->
+    <section id="tab-scanner" class="tab-pane">
+      <div class="glass-card">
+        <div class="glass-card-title">
+          <span>📷 Leitor de QR Code para Entrega</span>
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Balcão</span>
+        </div>
+
+        <!-- Janela de Câmera -->
+        <div id="reader"></div>
+
+        <!-- Botões Táteis Grandes de Leitura -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+          <!-- Botão Gigante de Foto (Funciona 100% de qualquer URL!) -->
+          <label for="qr-camera-capture" class="btn-glass btn-primary-glass btn-large-hero" style="cursor: pointer;">
+            <span>📸 TIRAR FOTO / LER QR CODE</span>
+          </label>
+          <input type="file" id="qr-camera-capture" accept="image/*" capture="environment" style="display: none;">
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btn-toggle-camera" class="btn-glass btn-secondary-glass" style="flex: 1;">
+              🎥 Vídeo Contínuo
+            </button>
+            <label for="qr-file-upload" class="btn-glass btn-secondary-glass" style="flex: 1; cursor: pointer; text-align: center;">
+              📁 Galeria
+            </label>
+            <input type="file" id="qr-file-upload" accept="image/*" style="display: none;">
+          </div>
+        </div>
+
+        <div id="scanner-status-text" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+          Toque no botão <strong>"Tirar Foto"</strong> para escanear com 1 toque.
+        </div>
+
+        <!-- Validação Manual por Código -->
+        <div style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 16px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+            Ou digite o código do vale:
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="manual-code-input" class="input-glass" placeholder="Ex: FEIJ-1001" autocapitalize="characters" autocomplete="off" style="flex: 1;">
+            <button type="button" id="btn-manual-validate" class="btn-glass btn-secondary-glass" style="width: auto; padding: 0 20px;">
+              Validar
+            </button>
+          </div>
+        </div>
+
+        <!-- FEEDBACK DA LEITURA DO SCANNER -->
+        <div id="scan-result" class="scan-feedback-glass">
+          <div id="scan-badge" style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 10px;">
+            VÁLIDO
+          </div>
+          <div id="scan-buyer-name" style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px;">Nome</div>
+          <div id="scan-qty" style="font-size: 1.15rem; font-weight: 800; color: #ea580c; margin-bottom: 10px;">1 Porção</div>
+          <div id="scan-details" style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">Detalhes</div>
+
+          <div id="scan-action-container">
+            <button type="button" id="btn-confirm-delivery" class="btn-glass btn-success-glass btn-large-hero">
+              🍲 CONFIRMAR ENTREGA DA FEIJOADA
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ABA 3: COZINHA & LOGÍSTICA (DASHBOARD) ==================== -->
+    <section id="tab-dashboard" class="tab-pane">
+      <div class="stats-grid-glass">
+        <div class="stat-box-glass">
+          <span class="stat-label-glass">Total Vendidas</span>
+          <span class="stat-num-glass" id="dash-total-qty">0</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);" id="dash-total-tickets">0 vales</span>
+        </div>
+
+        <div class="stat-box-glass">
+          <span class="stat-label-glass">Já Entregues</span>
+          <span class="stat-num-glass" id="dash-delivered-qty" style="color: #16a34a;">0</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);" id="dash-delivered-pct">0%</span>
+        </div>
+
+        <!-- Card de Destaque da Cozinha: Quantas faltam na fila! -->
+        <div class="stat-box-glass highlight">
+          <span class="stat-label-glass" style="color: #c2410c;">🔥 Faltam Entregar</span>
+          <span class="stat-num-glass" id="dash-pending-qty" style="color: #c2410c;">0</span>
+          <span style="font-size: 0.75rem; color: #9a3412; font-weight: 700;">Ritmo da Cozinha</span>
+        </div>
+
+        <div class="stat-box-glass">
+          <span class="stat-label-glass">Faturamento</span>
+          <span class="stat-num-glass" id="dash-revenue" style="font-size: 1.6rem;">¥ 0</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Total Arrecadado</span>
+        </div>
+      </div>
+
+      <!-- Barra de Progresso Glass -->
+      <div class="glass-card" style="padding: 18px 20px;">
+        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; margin-bottom: 8px;">
+          <span>Progresso de Entregas</span>
+          <span id="dash-progress-label">0%</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.06); height: 16px; border-radius: 999px; overflow: hidden;">
+          <div id="dash-progress-bar" style="background: linear-gradient(90deg, #ea580c, #16a34a); height: 100%; width: 0%; border-radius: 999px; transition: width 0.4s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Feed Recente de Saídas -->
+      <div class="glass-card">
+        <div class="glass-card-title">
+          <span>Últimas Saídas da Cozinha</span>
+          <button type="button" id="btn-refresh-stats" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 36px; padding: 6px 14px; font-size: 0.8rem;">
+            🔄 Atualizar
+          </button>
+        </div>
+        <div id="recent-deliveries-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma entrega ainda.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== ABA 4: VALES & QR CODES (GESTÃO) ==================== -->
+    <section id="tab-list" class="tab-pane">
+      <div class="glass-card">
+        <div class="glass-card-title">
+          <span>🎫 Vales Cadastrados</span>
+          <a href="/api/export/csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 38px; padding: 6px 14px; font-size: 0.8rem; text-decoration: none;">
+            📥 Excel
+          </a>
+        </div>
+
+        <!-- Filtro Rápido -->
+        <div style="margin-bottom: 14px;">
+          <input type="text" id="filter-search" class="input-glass" placeholder="🔍 Buscar nome, telefone ou código..." autocomplete="off">
+        </div>
+
+        <!-- Lista em Cartões Táteis com Botão Direto para QR Code -->
+        <div id="tickets-cards-container">
+          <div style="text-align: center; color: var(--text-muted); padding: 20px;">Carregando vales...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== DOCK DE NAVEGAÇÃO INFERIOR ESTILO IPHONE ==================== -->
+  <nav class="ios-floating-dock">
+    <button type="button" class="dock-item active" data-tab="tab-sales">
+      <span class="dock-item-icon">➕</span>
+      <span class="dock-item-label">Compra</span>
+    </button>
+    <button type="button" class="dock-item" data-tab="tab-scanner">
+      <span class="dock-item-icon">📷</span>
+      <span class="dock-item-label">Escanear</span>
+    </button>
+    <button type="button" class="dock-item" data-tab="tab-dashboard">
+      <span class="dock-item-icon">📊</span>
+      <span class="dock-item-label">Cozinha</span>
+    </button>
+    <button type="button" class="dock-item" data-tab="tab-list">
+      <span class="dock-item-icon">🎫</span>
+      <span class="dock-item-label">Vales</span>
+    </button>
+  </nav>
+
+  <!-- ==================== MODAL DE VISUALIZAÇÃO DE QUALQUER QR CODE ==================== -->
+  <div id="ticket-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #1c1917;">Vale Feijoada Digital</h3>
+        <button type="button" id="btn-close-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass">
+        <div style="font-size: 0.85rem; font-weight: 800; color: #ea580c; text-transform: uppercase;">COMUNIDADE CATÓLICA</div>
+        
+        <div class="ticket-success-qr" style="margin: 12px 0;">
+          <img id="modal-qr-image" src="" alt="QR Code" style="width: 220px; height: 220px; display: block; border-radius: 10px;">
+        </div>
+
+        <div id="modal-code" style="font-family: monospace; font-size: 1.6rem; font-weight: 900; color: #c2410c; letter-spacing: 2px;">FEIJ-0000</div>
+        <div id="modal-buyer" style="font-size: 1.25rem; font-weight: 800; color: #1c1917; margin-top: 4px;">Nome</div>
+        <div id="modal-qty" style="font-size: 1.05rem; font-weight: 800; color: #16a34a; margin: 4px 0 16px 0;">1 Porção</div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" id="btn-share-whatsapp" class="btn-glass btn-success-glass">
+            📱 Compartilhar no WhatsApp
+          </button>
+          <a id="btn-open-ticket-link" href="#" target="_blank" class="btn-glass btn-blue-glass">
+            🔗 Abrir Página do Vale
+          </a>
+          <button type="button" id="btn-download-qr" class="btn-glass btn-secondary-glass">
+            📥 Baixar Imagem do QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

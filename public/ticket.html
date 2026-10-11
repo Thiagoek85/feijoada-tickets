@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Vale Feijoada Digital</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 35%, #ffedd5 70%, #fef3c7 100%);
+      background-attachment: fixed;
+      color: #1c1917;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -100px;
+      right: -60px;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(234, 88, 12, 0.25) 0%, rgba(234, 88, 12, 0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+    }
+    .ticket-glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border-radius: 28px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 48px -8px rgba(194, 65, 12, 0.16), 0 4px 16px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      position: relative;
+    }
+    .ticket-header {
+      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(194, 65, 12, 0.2);
+    }
+    .ticket-header h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
+    }
+    .ticket-header p {
+      font-size: 0.82rem;
+      opacity: 0.95;
+      font-weight: 500;
+    }
+    .ticket-body {
+      padding: 22px 24px 28px 24px;
+      text-align: center;
+    }
+    .qr-box-glass {
+      background: #fafaf9;
+      border: 2.5px dashed #ea580c;
+      padding: 14px;
+      border-radius: 22px;
+      display: inline-block;
+      margin: 10px 0 16px 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+    .qr-box-glass img {
+      width: 220px;
+      height: 220px;
+      display: block;
+      border-radius: 12px;
+    }
+    .ticket-code {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: #c2410c;
+      letter-spacing: 2px;
+      font-family: monospace;
+    }
+    .buyer-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1c1917;
+      margin-top: 4px;
+    }
+    .qty-tag {
+      display: inline-block;
+      background: #ffedd5;
+      color: #9a3412;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 6px 18px;
+      border-radius: 999px;
+      margin: 8px 0 12px 0;
+      border: 1px solid #fed7aa;
+    }
+    .status-badge {
+      display: block;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-top: 10px;
+    }
+    .status-badge.pronto {
+      background: rgba(220, 252, 231, 0.9);
+      color: #166534;
+      border: 1.5px solid #86efac;
+    }
+    .status-badge.entregue {
+      background: rgba(241, 245, 249, 0.9);
+      color: #475569;
+      border: 1.5px solid #cbd5e1;
+    }
+    .info-box-glass {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+      font-size: 0.85rem;
+      color: #57534e;
+      border: 1px solid rgba(231, 229, 228, 0.8);
+      line-height: 1.6;
+    }
+    .footer-note {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: #78716c;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticket-glass-card" id="ticket-container">
+    <div class="ticket-header">
+      <div style="font-size: 2.2rem; margin-bottom: 2px;">🍲</div>
+      <h1 id="event-title">COMUNIDADE CATÓLICA</h1>
+      <p id="event-subtitle">Vale Feijoada Beneficente • Oficial</p>
+    </div>
+
+    <div class="ticket-body">
+      <div class="qr-box-glass">
+        <img id="qr-image" src="" alt="Carregando QR Code...">
+      </div>
+
+      <div class="ticket-code" id="ticket-code">FEIJ-0000</div>
+      <div class="buyer-title" id="buyer-name">Carregando...</div>
+      <div class="qty-tag" id="ticket-qty">1 Porção</div>
+
+      <div id="status-badge" class="status-badge pronto">
+        ✅ Pronto para Retirada!
+      </div>
+
+      <div class="info-box-glass">
+        📍 <strong>Local de Retirada:</strong> <span id="event-location">Salão Paroquial</span><br>
+        📅 <strong>Horário:</strong> <span id="event-datetime">Retirada das 11:30 às 15:00</span><br>
+        ℹ️ <strong>Instruções:</strong> Apresente esta tela com o QR Code no balcão de entrega para validação rápida pela comissão.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Obrigado por colaborar com as obras da nossa comunidade! 🙏
+  </div>
+
+  <script>
+    async function loadTicket() {
+      const pathParts = window.location.pathname.split('/');
+      const code = pathParts[pathParts.length - 1];
+
+      try {
+        const [ticketRes, configRes] = await Promise.all([
+          fetch(`/api/tickets/${encodeURIComponent(code)}`),
+          fetch('/api/config')
+        ]);
+
+        if (!ticketRes.ok) {
+          document.querySelector('.ticket-body').innerHTML = `
+            <div style="padding: 30px 10px; color: #dc2626;">
+              <h2>❌ Vale Não Encontrado</h2>
+              <p style="margin-top: 8px;">O código informado não existe em nosso sistema.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const ticket = await ticketRes.json();
+        const config = await configRes.json();
+
+        if (config.event_name) document.getElementById('event-title').textContent = config.event_name;
+        if (config.event_location) document.getElementById('event-location').textContent = config.event_location;
+        if (config.event_time) document.getElementById('event-datetime').textContent = `${config.event_date || ''} (${config.event_time})`;
+
+        document.getElementById('qr-image').src = ticket.qr_code;
+        document.getElementById('ticket-code').textContent = ticket.code;
+        document.getElementById('buyer-name').textContent = ticket.buyer_name;
+        
+        const symbol = config.currency_symbol || '¥';
+        const formattedPrice = `${symbol} ${Math.round(ticket.total_price).toLocaleString('ja-JP')}`;
+        document.getElementById('ticket-qty').textContent = `${ticket.quantity} Porção(ões) • ${formattedPrice}`;
+
+        const badge = document.getElementById('status-badge');
+        if (ticket.status === 'entregue') {
+          const last = ticket.deliveries && ticket.deliveries[0];
+          badge.className = 'status-badge entregue';
+          badge.innerHTML = `🍲 JÁ ENTREGUE ${last ? `<br><small style="font-weight: normal;">Retirado em: ${last.delivered_at}</small>` : ''}`;
+        } else if (ticket.status === 'parcial') {
+          badge.className = 'status-badge pronto';
+          badge.innerHTML = `⚠️ RETIRADA PARCIAL<br><small>${ticket.delivered_quantity} de ${ticket.quantity} já entregues</small>`;
+        } else {
+          badge.className = 'status-badge pronto';
+          badge.textContent = '✅ VÁLIDO PARA RETIRADA NO BALCÃO';
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadTicket();
+  </script>
+</body>
+</html>
