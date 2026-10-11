@@ -184,11 +184,12 @@
     async function loadTicket() {
       const pathParts = window.location.pathname.split('/');
       const code = pathParts[pathParts.length - 1];
+      const BASE_PATH = window.location.pathname.includes('/feijoada') ? '/feijoada' : '';
 
       try {
         const [ticketRes, configRes] = await Promise.all([
-          fetch(`/api/tickets/${encodeURIComponent(code)}`),
-          fetch('/api/config')
+          fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(code)}`),
+          fetch(`${BASE_PATH}/api/config`)
         ]);
 
         if (!ticketRes.ok) {

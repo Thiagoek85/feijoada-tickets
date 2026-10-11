@@ -11,6 +11,9 @@ let eventConfig = {
   http_port: 3000
 };
 
+// Base path detection para suporte a Tailscale Funnel (/feijoada) ou acesso local
+const BASE_PATH = window.location.pathname.startsWith('/feijoada') ? '/feijoada' : '';
+
 // Web Audio API para sons de confirmação e erro estilo iOS
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -117,7 +120,7 @@ function switchTab(tabId) {
 // Carregar Configurações
 async function loadConfig() {
   try {
-    const res = await fetch('/api/config');
+    const res = await fetch(BASE_PATH + '/api/config');
     const data = await res.json();
     eventConfig = { ...eventConfig, ...data };
     document.getElementById('app-event-name').textContent = eventConfig.event_name || 'Vale Feijoada';
@@ -130,7 +133,7 @@ async function loadConfig() {
 // Configurar SSE (Server-Sent Events)
 function setupSSE() {
   try {
-    const evtSource = new EventSource('/api/events');
+    const evtSource = new EventSource(BASE_PATH + '/api/events');
     evtSource.onmessage = (event) => {
       const parsed = JSON.parse(event.data);
       if (['ticket_delivered', 'ticket_created', 'batch_created'].includes(parsed.type)) {
@@ -219,7 +222,7 @@ function setupSalesForm() {
     };
 
     try {
-      const res = await fetch('/api/tickets', {
+      const res = await fetch(BASE_PATH + '/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -252,7 +255,7 @@ function setupSalesForm() {
     document.getElementById('success-buyer').textContent = ticket.buyer_name;
     document.getElementById('success-qty').textContent = `${ticket.quantity} Porção(ões) • ${formatMoney(ticket.total_price)}`;
 
-    const ticketUrl = `${window.location.origin}/ticket/${ticket.code}`;
+    const ticketUrl = `${window.location.origin}${BASE_PATH}/ticket/${ticket.code}`;
     document.getElementById('btn-open-ticket-direct').href = ticketUrl;
 
     // Enviar no WhatsApp
@@ -442,7 +445,7 @@ async function validateCode(code) {
   resultCard.className = 'scan-feedback-glass';
 
   try {
-    const res = await fetch(`/api/tickets/${encodeURIComponent(code)}/validate`, {
+    const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(code)}/validate`, {
       method: 'POST'
     });
     const data = await res.json();
@@ -537,7 +540,7 @@ async function confirmDelivery() {
   btn.innerHTML = '<span>⏳ Registrando...</span>';
 
   try {
-    const res = await fetch(`/api/tickets/${encodeURIComponent(currentTicketData.code)}/deliver`, {
+    const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(currentTicketData.code)}/deliver`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -589,7 +592,7 @@ function resetScannerResult() {
 // ==================== ABA 3: LOGÍSTICA & COZINHA (DASHBOARD) ====================
 async function loadStats() {
   try {
-    const res = await fetch('/api/stats');
+    const res = await fetch(BASE_PATH + '/api/stats');
     const data = await res.json();
 
     document.getElementById('dash-total-qty').textContent = data.total_feijoadas;
@@ -638,7 +641,7 @@ async function loadTickets() {
   const container = document.getElementById('tickets-cards-container');
 
   try {
-    let url = `/api/tickets?status=todos`;
+    let url = `${BASE_PATH}/api/tickets?status=todos`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
 
     const res = await fetch(url);
@@ -684,7 +687,7 @@ async function loadTickets() {
 // Visualizar qualquer QR Code no modal
 async function viewTicketQr(code) {
   try {
-    const res = await fetch(`/api/tickets/${encodeURIComponent(code)}`);
+    const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(code)}`);
     if (!res.ok) return alert('Vale não encontrado');
     const ticket = await res.json();
 
@@ -694,7 +697,7 @@ async function viewTicketQr(code) {
     document.getElementById('modal-buyer').textContent = ticket.buyer_name;
     document.getElementById('modal-qty').textContent = `${ticket.quantity} Porção(ões) • ${formatMoney(ticket.total_price)}`;
 
-    const ticketUrl = `${window.location.origin}/ticket/${ticket.code}`;
+    const ticketUrl = `${window.location.origin}${BASE_PATH}/ticket/${ticket.code}`;
     document.getElementById('btn-open-ticket-link').href = ticketUrl;
 
     document.getElementById('btn-share-whatsapp').onclick = () => {
