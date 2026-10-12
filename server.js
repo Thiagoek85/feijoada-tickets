@@ -555,7 +555,7 @@ app.put('/api/tickets/:code', (req, res) => {
   }
 });
 
-// Cancelar Ticket
+// Cancelar Ticket (Soft delete / Anulação)
 app.delete('/api/tickets/:code', (req, res) => {
   try {
     const code = req.params.code.trim().toUpperCase();
@@ -569,6 +569,70 @@ app.delete('/api/tickets/:code', (req, res) => {
     broadcastEvent('ticket_updated', { ...ticket, status: 'cancelado' });
 
     res.json({ success: true, message: 'Vale cancelado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Excluir Permanentemente um Ticket Individual (Purge)
+app.delete('/api/tickets/:code/purge', (req, res) => {
+  try {
+    const code = req.params.code.trim().toUpperCase();
+    const ticket = db.prepare('SELECT * FROM tickets WHERE code = ?').get(code);
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket não encontrado.' });
+    }
+
+    db.transaction(() => {
+      db.prepare('DELETE FROM deliveries WHERE ticket_id = ?').run(ticket.id);
+      db.prepare('DELETE FROM tickets WHERE id = ?').run(ticket.id);
+    })();
+
+    broadcastEvent('ticket_deleted', { code, id: ticket.id });
+
+    res.json({ success: true, message: `Vale ${code} excluído permanentemente do sistema.` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Limpeza em Lote de Vales (Purge Bulk: cancelados, entregues ou ambos)
+app.post('/api/tickets/purge-bulk', (req, res) => {
+  try {
+    const { target } = req.body; // 'cancelados', 'entregues' ou 'finalizados' (ambos)
+    let condition = '';
+
+    if (target === 'cancelados') {
+      condition = "status = 'cancelado'";
+    } else if (target === 'entregues') {
+      condition = "status = 'entregue'";
+    } else if (target === 'finalizados' || target === 'todos_inativos') {
+      condition = "status IN ('cancelado', 'entregue')";
+    } else {
+      return res.status(400).json({ error: "Alvo inválido. Use 'cancelados', 'entregues' ou 'finalizados'." });
+    }
+
+    const ticketsToDelete = db.prepare(`SELECT id, code FROM tickets WHERE ${condition}`).all();
+    if (ticketsToDelete.length === 0) {
+      return res.json({ success: true, count: 0, message: 'Nenhum pedido encontrado para exclusão.' });
+    }
+
+    const ticketIds = ticketsToDelete.map(t => t.id);
+    const placeholders = ticketIds.map(() => '?').join(',');
+
+    db.transaction(() => {
+      db.prepare(`DELETE FROM deliveries WHERE ticket_id IN (${placeholders})`).run(...ticketIds);
+      db.prepare(`DELETE FROM tickets WHERE id IN (${placeholders})`).run(...ticketIds);
+    })();
+
+    broadcastEvent('tickets_purged', { count: ticketsToDelete.length, target });
+
+    res.json({
+      success: true,
+      count: ticketsToDelete.length,
+      message: `${ticketsToDelete.length} vale(s) excluído(s) permanentemente com sucesso!`
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

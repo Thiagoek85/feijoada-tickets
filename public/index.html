@@ -282,12 +282,33 @@
       <div class="glass-card">
         <div class="glass-card-title">
           <span>🎫 Vales Cadastrados</span>
-          <a id="btn-export-csv" href="api/export/csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 38px; padding: 6px 14px; font-size: 0.8rem; text-decoration: none;">
-            📥 Excel
-          </a>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-open-purge-modal" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 38px; padding: 6px 12px; font-size: 0.8rem; color: #dc2626; border-color: #fca5a5;">
+              🗑️ Limpar
+            </button>
+            <a id="btn-export-csv" href="api/export/csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 38px; padding: 6px 14px; font-size: 0.8rem; text-decoration: none;">
+              📥 Excel
+            </a>
+          </div>
         </div>
 
-        <!-- Filtro Rápido -->
+        <!-- Filtros Rápidos de Status e Busca -->
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px;">
+          <button type="button" class="btn-glass btn-secondary-glass filter-status-chip active" data-filterstatus="todos" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px;">
+            Todos
+          </button>
+          <button type="button" class="btn-glass btn-secondary-glass filter-status-chip" data-filterstatus="ativo" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px;">
+            Pendentes
+          </button>
+          <button type="button" class="btn-glass btn-secondary-glass filter-status-chip" data-filterstatus="entregue" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px;">
+            Entregues
+          </button>
+          <button type="button" class="btn-glass btn-secondary-glass filter-status-chip" data-filterstatus="cancelado" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px; color: #dc2626;">
+            Cancelados
+          </button>
+        </div>
+
+        <!-- Busca por texto -->
         <div style="margin-bottom: 14px;">
           <input type="text" id="filter-search" class="input-glass" placeholder="🔍 Buscar nome, telefone ou código..." autocomplete="off">
         </div>
@@ -611,6 +632,47 @@
             Voltar / Manter Vale
           </button>
         </div>
+  <!-- ==================== MODAL DE LIMPEZA E EXCLUSÃO DE VALES (PURGE) ==================== -->
+  <div id="purge-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 380px;">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #dc2626;">🗑️ Excluir / Limpar Vales</h3>
+        <button type="button" id="btn-close-purge-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="text-align: left; padding: 20px;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          Remova permanentemente do banco de dados os vales que já foram concluídos ou cancelados:
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+          <!-- Opção 1: Excluir Apenas Cancelados -->
+          <button type="button" id="btn-purge-cancelled" class="btn-glass btn-secondary-glass" style="text-align: left; padding: 12px 14px; min-height: auto; justify-content: flex-start; border-color: #fca5a5;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: #dc2626;">🗑️ Apagar Apenas Cancelados</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Remove todos os pedidos marcados como cancelados</div>
+            </div>
+          </button>
+
+          <!-- Opção 2: Excluir Apenas Entregues / Finalizados -->
+          <button type="button" id="btn-purge-delivered" class="btn-glass btn-secondary-glass" style="text-align: left; padding: 12px 14px; min-height: auto; justify-content: flex-start; border-color: #cbd5e1;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: #475569;">📦 Apagar Apenas Entregues</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Remove vales que já foram retirados 100% no balcão</div>
+            </div>
+          </button>
+
+          <!-- Opção 3: Excluir Cancelados E Entregues juntos -->
+          <button type="button" id="btn-purge-all-inactive" class="btn-glass" style="background: #fef2f2; border: 1.5px solid #ef4444; text-align: left; padding: 12px 14px; min-height: auto; justify-content: flex-start;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: #b91c1c;">🔥 Limpar Todos Concluídos & Cancelados</div>
+              <div style="font-size: 0.72rem; color: #991b1b;">Mantém apenas os vales que ainda estão ativos/pendentes</div>
+            </div>
+          </button>
+        </div>
+
+        <button type="button" id="btn-abort-purge-modal" class="btn-glass btn-secondary-glass">
+          Fechar
+        </button>
       </div>
     </div>
   </div>

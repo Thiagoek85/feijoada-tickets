@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSalesForm();
   setupEditForm();
   setupCalendarModal();
+  setupPurgeModal();
   setupSSE();
 });
 
@@ -153,7 +154,7 @@ function setupSSE() {
     const evtSource = new EventSource(BASE_PATH + '/api/events');
     evtSource.onmessage = (event) => {
       const parsed = JSON.parse(event.data);
-      if (['ticket_delivered', 'ticket_created', 'ticket_updated', 'batch_created'].includes(parsed.type)) {
+      if (['ticket_delivered', 'ticket_created', 'ticket_updated', 'ticket_deleted', 'tickets_purged', 'batch_created'].includes(parsed.type)) {
         loadStats();
         if (document.getElementById('tab-list').classList.contains('active')) {
           loadTickets();
@@ -662,13 +663,15 @@ async function loadStats() {
 document.getElementById('btn-refresh-stats').addEventListener('click', loadStats);
 
 // ==================== ABA 4: VALES & QR CODES (GESTÃO) ====================
+let currentFilterStatus = 'todos';
+
 async function loadTickets() {
   const searchInput = document.getElementById('filter-search');
   const search = searchInput ? searchInput.value.trim() : '';
   const container = document.getElementById('tickets-cards-container');
 
   try {
-    let url = `${BASE_PATH}/api/tickets?status=todos`;
+    let url = `${BASE_PATH}/api/tickets?status=${encodeURIComponent(currentFilterStatus)}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
 
     const res = await fetch(url);
@@ -683,11 +686,13 @@ async function loadTickets() {
       let badgeClass = 'badge-ativo';
       let badgeText = 'PENDENTE';
       let isCancelled = t.status === 'cancelado';
+      let isDelivered = t.status === 'entregue';
+      let canDeletePermanently = isCancelled || isDelivered;
 
-      if (t.status === 'cancelado') {
+      if (isCancelled) {
         badgeClass = 'badge-cancelado';
         badgeText = 'CANCELADO';
-      } else if (t.status === 'entregue') {
+      } else if (isDelivered) {
         badgeClass = 'badge-entregue';
         badgeText = 'ENTREGUE';
       } else if (t.status === 'parcial') {
@@ -696,7 +701,7 @@ async function loadTickets() {
       }
 
       return `
-        <div class="ticket-item-glass" style="${isCancelled ? 'opacity: 0.65; border-color: #e5e7eb;' : ''}">
+        <div class="ticket-item-glass" style="${isCancelled ? 'opacity: 0.72; border-color: #fca5a5; background: rgba(254, 242, 242, 0.75);' : ''}">
           <div class="ticket-item-info">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="ticket-item-name" style="${isCancelled ? 'text-decoration: line-through; color: #6b7280;' : ''}">${escapeHtml(t.buyer_name)}</span>
@@ -712,7 +717,7 @@ async function loadTickets() {
             ${t.buyer_phone ? `<div style="font-size: 0.75rem; color: var(--text-light); margin-top: 2px;">📱 ${escapeHtml(t.buyer_phone)}</div>` : ''}
           </div>
 
-          <!-- Botões Rápidos de Ação: Ver QR e Ajustar -->
+          <!-- Botões Rápidos de Ação: Ver QR, Ajustar e Excluir se inativo -->
           <div class="ticket-item-actions">
             <button type="button" class="btn-glass btn-primary-glass" style="font-size: 0.85rem;" onclick="viewTicketQr('${t.code}')">
               👁️ Ver QR
@@ -720,6 +725,11 @@ async function loadTickets() {
             <button type="button" class="btn-glass btn-secondary-glass" style="font-size: 0.85rem;" onclick="openEditTab('${t.code}')">
               ✏️ Ajustar
             </button>
+            ${canDeletePermanently ? `
+              <button type="button" class="btn-glass" style="font-size: 0.85rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;" onclick="deleteTicketPermanently('${t.code}', '${escapeHtml(t.buyer_name)}')">
+                🗑️ Excluir
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -1331,6 +1341,120 @@ function setupCalendarModal() {
       }
 
       closeCalendarModal();
+    });
+  }
+}
+
+// ==================== EXCLUSÃO PERMANENTE / LIMPEZA DE VALES ====================
+async function deleteTicketPermanently(code, buyerName) {
+  triggerHaptic('light');
+  const ok = confirm(`⚠️ ATENÇÃO: Deseja apagar PERMANENTEMENTE o vale ${code} (${buyerName}) do banco de dados?\n\nEsta operação não pode ser desfeita.`);
+  if (!ok) return;
+
+  try {
+    const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(code)}/purge`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (res.ok) {
+      playSuccessSound();
+      alert(`🗑️ Vale ${code} apagado com sucesso!`);
+      loadStats();
+      loadTickets();
+    } else {
+      playErrorSound();
+      alert(`Erro: ${data.error || 'Falha ao excluir o vale'}`);
+    }
+  } catch (err) {
+    playErrorSound();
+    alert('Erro de comunicação ao excluir o vale.');
+  }
+}
+
+function setupPurgeModal() {
+  const modal = document.getElementById('purge-modal');
+  const btnOpen = document.getElementById('btn-open-purge-modal');
+  const btnClose = document.getElementById('btn-close-purge-modal');
+  const btnAbort = document.getElementById('btn-abort-purge-modal');
+
+  const btnPurgeCancelled = document.getElementById('btn-purge-cancelled');
+  const btnPurgeDelivered = document.getElementById('btn-purge-delivered');
+  const btnPurgeAllInactive = document.getElementById('btn-purge-all-inactive');
+
+  function closePurgeModal() {
+    if (modal) modal.classList.remove('active');
+  }
+
+  if (btnOpen) {
+    btnOpen.addEventListener('click', () => {
+      triggerHaptic('light');
+      if (modal) modal.classList.add('active');
+    });
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closePurgeModal);
+  if (btnAbort) btnAbort.addEventListener('click', closePurgeModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closePurgeModal();
+    });
+  }
+
+  // Configuração dos botões de filtro de status na aba Vales
+  const statusChips = document.querySelectorAll('.filter-status-chip');
+  statusChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      triggerHaptic('light');
+      statusChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilterStatus = chip.getAttribute('data-filterstatus') || 'todos';
+      loadTickets();
+    });
+  });
+
+  async function executeBulkPurge(target, description) {
+    triggerHaptic('light');
+    const ok = confirm(`⚠️ ATENÇÃO: Deseja realmente excluir permanentemente todos os ${description}?\n\nEsta ação apagará os registros definitivamente do banco de dados.`);
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`${BASE_PATH}/api/tickets/purge-bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        playSuccessSound();
+        closePurgeModal();
+        alert(`🗑️ ${data.message || 'Exclusão concluída!'}`);
+        loadStats();
+        loadTickets();
+      } else {
+        playErrorSound();
+        alert(`Erro: ${data.error || 'Falha ao executar limpeza'}`);
+      }
+    } catch (err) {
+      playErrorSound();
+      alert('Erro de conexão ao executar limpeza.');
+    }
+  }
+
+  if (btnPurgeCancelled) {
+    btnPurgeCancelled.addEventListener('click', () => {
+      executeBulkPurge('cancelados', 'pedidos cancelados');
+    });
+  }
+
+  if (btnPurgeDelivered) {
+    btnPurgeDelivered.addEventListener('click', () => {
+      executeBulkPurge('entregues', 'pedidos já entregues / finalizados');
+    });
+  }
+
+  if (btnPurgeAllInactive) {
+    btnPurgeAllInactive.addEventListener('click', () => {
+      executeBulkPurge('finalizados', 'pedidos cancelados E entregues (todos inativos)');
     });
   }
 }
