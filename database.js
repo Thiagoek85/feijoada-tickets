@@ -67,6 +67,13 @@ try {
     db.prepare("ALTER TABLE tickets ADD COLUMN sale_channel TEXT DEFAULT 'antecipado'").run();
     db.prepare("CREATE INDEX IF NOT EXISTS idx_tickets_channel ON tickets(sale_channel)").run();
   }
+
+  const hasSoldBy = tableInfo.some(col => col.name === 'sold_by');
+  if (!hasSoldBy) {
+    db.prepare("ALTER TABLE tickets ADD COLUMN sold_by TEXT DEFAULT 'Administração'").run();
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_tickets_sold_by ON tickets(sold_by)").run();
+  }
+
 } catch (e) {
   console.warn('Erro ao verificar/migrar colunas do banco:', e.message);
 }
@@ -79,5 +86,6 @@ initConfig.run('event_time', '11:30 às 15:00');
 initConfig.run('event_location', 'Salão Paroquial');
 initConfig.run('unit_price', '1000');
 initConfig.run('currency_symbol', '¥');
+initConfig.run('admin_pin', '2026');
 
 module.exports = db;
