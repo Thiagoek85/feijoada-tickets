@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTickets();
   setupScanner();
   setupSalesForm();
+  setupBalcaoSale();
   setupEditForm();
   setupCalendarModal();
   setupPurgeModal();
@@ -759,6 +760,15 @@ async function loadStats() {
     document.getElementById('dash-pending-qty').textContent = data.pending_feijoadas;
     document.getElementById('dash-revenue').textContent = formatMoney(data.total_revenue);
 
+    const balcaoRevEl = document.getElementById('dash-balcao-revenue');
+    if (balcaoRevEl) {
+      balcaoRevEl.textContent = formatMoney(data.balcao_revenue || 0);
+    }
+    const balcaoCountEl = document.getElementById('dash-balcao-count');
+    if (balcaoCountEl) {
+      balcaoCountEl.textContent = `${data.balcao_feijoadas || 0} porções no dinheiro`;
+    }
+
     const bar = document.getElementById('dash-progress-bar');
     const label = document.getElementById('dash-progress-label');
     const pct = `${data.completion_percentage}%`;
@@ -798,7 +808,12 @@ async function loadTickets() {
   const container = document.getElementById('tickets-cards-container');
 
   try {
-    let url = `${BASE_PATH}/api/tickets?status=${encodeURIComponent(currentFilterStatus)}`;
+    let url = `${BASE_PATH}/api/tickets?`;
+    if (currentFilterStatus === 'balcao') {
+      url += `channel=balcao`;
+    } else {
+      url += `status=${encodeURIComponent(currentFilterStatus)}`;
+    }
     if (search) url += `&search=${encodeURIComponent(search)}`;
 
     const res = await fetch(url);
@@ -814,6 +829,7 @@ async function loadTickets() {
       let badgeText = 'PENDENTE';
       let isCancelled = t.status === 'cancelado';
       let isDelivered = t.status === 'entregue';
+      let isBalcao = t.sale_channel === 'balcao';
       let canDeletePermanently = isCancelled || isDelivered;
 
       if (isCancelled) {
@@ -828,10 +844,11 @@ async function loadTickets() {
       }
 
       return `
-        <div class="ticket-item-glass" style="${isCancelled ? 'opacity: 0.72; border-color: #fca5a5; background: rgba(254, 242, 242, 0.75);' : ''}">
+        <div class="ticket-item-glass" style="${isCancelled ? 'opacity: 0.72; border-color: #fca5a5; background: rgba(254, 242, 242, 0.75);' : (isBalcao ? 'border-color: #a7f3d0;' : '')}">
           <div class="ticket-item-info">
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span class="ticket-item-name" style="${isCancelled ? 'text-decoration: line-through; color: #6b7280;' : ''}">${escapeHtml(t.buyer_name)}</span>
+              ${isBalcao ? `<span class="badge-balcao">🏪 Balcão</span>` : ''}
               <span class="ticket-item-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="ticket-item-meta">
@@ -1582,6 +1599,154 @@ function setupPurgeModal() {
   if (btnPurgeAllInactive) {
     btnPurgeAllInactive.addEventListener('click', () => {
       executeBulkPurge('finalizados', 'pedidos cancelados E entregues (todos inativos)');
+    });
+  }
+}
+
+// ==================== VENDA RÁPIDA DE BALCÃO (FLUXO OTIMIZADO) ====================
+function setupBalcaoSale() {
+  const modal = document.getElementById('balcao-modal');
+  const btnTrigger = document.getElementById('btn-quick-balcao-trigger');
+  const btnClose = document.getElementById('btn-close-balcao-modal');
+  const btnCancel = document.getElementById('btn-cancel-balcao');
+  const form = document.getElementById('form-balcao-quick');
+  const stepperDisplay = document.getElementById('balcao-stepper-display');
+  const qtyInput = document.getElementById('balcao-quantity');
+  const btnMinus = document.getElementById('btn-balcao-minus');
+  const btnPlus = document.getElementById('btn-balcao-plus');
+  const qtyChips = document.querySelectorAll('[data-balcaoqty]');
+  const totalPreview = document.getElementById('balcao-calculated-total');
+  const submitBtn = document.getElementById('btn-submit-balcao');
+  const buyerNameInput = document.getElementById('balcao-buyer-name');
+  const autoDeliverCheckbox = document.getElementById('balcao-auto-deliver');
+
+  function openBalcaoModal() {
+    triggerHaptic('light');
+    if (modal) modal.classList.add('active');
+    updateBalcaoTotal();
+    setTimeout(() => {
+      if (buyerNameInput) buyerNameInput.focus();
+    }, 150);
+  }
+
+  function closeBalcaoModal() {
+    if (modal) modal.classList.remove('active');
+  }
+
+  function updateBalcaoTotal() {
+    const qty = parseInt(qtyInput ? qtyInput.value : 1, 10) || 1;
+    if (stepperDisplay) stepperDisplay.textContent = qty;
+    const unitPrice = Number(eventConfig.unit_price) || 1000;
+    const total = qty * unitPrice;
+    if (totalPreview) totalPreview.textContent = formatMoney(total);
+
+    qtyChips.forEach(chip => {
+      const chipQty = parseInt(chip.getAttribute('data-balcaoqty'), 10);
+      chip.classList.toggle('active', chipQty === qty);
+    });
+  }
+
+  if (btnTrigger) btnTrigger.addEventListener('click', openBalcaoModal);
+  if (btnClose) btnClose.addEventListener('click', closeBalcaoModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeBalcaoModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeBalcaoModal();
+    });
+  }
+
+  if (btnMinus) {
+    btnMinus.addEventListener('click', () => {
+      triggerHaptic('light');
+      let val = parseInt(qtyInput.value, 10) || 1;
+      if (val > 1) {
+        qtyInput.value = val - 1;
+        updateBalcaoTotal();
+      }
+    });
+  }
+
+  if (btnPlus) {
+    btnPlus.addEventListener('click', () => {
+      triggerHaptic('light');
+      let val = parseInt(qtyInput.value, 10) || 1;
+      if (val < 50) {
+        qtyInput.value = val + 1;
+        updateBalcaoTotal();
+      }
+    });
+  }
+
+  qtyChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      triggerHaptic('light');
+      const qty = parseInt(chip.getAttribute('data-balcaoqty'), 10);
+      if (qty && qtyInput) {
+        qtyInput.value = qty;
+        updateBalcaoTotal();
+      }
+    });
+  });
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      triggerHaptic('light');
+
+      const qty = parseInt(qtyInput ? qtyInput.value : 1, 10) || 1;
+      let buyerName = buyerNameInput ? buyerNameInput.value.trim() : '';
+      if (!buyerName) {
+        buyerName = `Cliente Balcão #${Math.floor(100 + Math.random() * 900)}`;
+      }
+      const autoDeliver = autoDeliverCheckbox ? autoDeliverCheckbox.checked : true;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Gravando Venda...';
+
+      try {
+        const res = await fetch(`${BASE_PATH}/api/tickets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyer_name: buyerName,
+            quantity: qty,
+            payment_method: 'dinheiro',
+            payment_status: 'pago',
+            sale_channel: 'balcao',
+            auto_deliver: autoDeliver
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          playSuccessSound();
+          closeBalcaoModal();
+
+          // Reset formulário
+          if (qtyInput) qtyInput.value = 1;
+          if (buyerNameInput) buyerNameInput.value = '';
+          if (autoDeliverCheckbox) autoDeliverCheckbox.checked = true;
+          updateBalcaoTotal();
+
+          loadStats();
+          if (document.getElementById('tab-list').classList.contains('active')) {
+            loadTickets();
+          }
+
+          alert(`✅ VENDA DE BALCÃO REGISTRADA!\n\n• Código: ${data.ticket.code}\n• Comprador: ${data.ticket.buyer_name}\n• Total: ${formatMoney(data.ticket.total_price)} (Dinheiro)\n• Status: ${autoDeliver ? 'Entregue no Balcão 🍲' : 'Aguardando Retirada'}`);
+        } else {
+          playErrorSound();
+          alert(`Erro ao registrar venda: ${data.error || 'Falha no servidor'}`);
+        }
+      } catch (err) {
+        playErrorSound();
+        console.error('Erro na venda de balcão:', err);
+        alert('Erro de conexão ao salvar venda de balcão.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💰 CONFIRMAR VENDA DE BALCÃO';
+      }
     });
   }
 }

@@ -61,8 +61,14 @@ try {
     // Preencher tickets existentes com a data de criação
     db.prepare("UPDATE tickets SET payment_date = substr(created_at, 1, 10) WHERE payment_status = 'pago' AND (payment_date IS NULL OR payment_date = '')").run();
   }
+
+  const hasSaleChannel = tableInfo.some(col => col.name === 'sale_channel');
+  if (!hasSaleChannel) {
+    db.prepare("ALTER TABLE tickets ADD COLUMN sale_channel TEXT DEFAULT 'antecipado'").run();
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_tickets_channel ON tickets(sale_channel)").run();
+  }
 } catch (e) {
-  console.warn('Erro ao verificar/migrar payment_date:', e.message);
+  console.warn('Erro ao verificar/migrar colunas do banco:', e.message);
 }
 
 // Configuração inicial padrão do evento

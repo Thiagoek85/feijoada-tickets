@@ -275,6 +275,18 @@
           <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Balcão</span>
         </div>
 
+        <!-- Botão Hero de Ação Rápida: Venda de Balcão -->
+        <div class="balcao-quick-banner" style="margin-bottom: 14px;">
+          <button type="button" id="btn-quick-balcao-trigger" class="btn-glass btn-balcao-hero">
+            <span style="font-size: 1.5rem;">🏪</span>
+            <div style="text-align: left; flex: 1;">
+              <div style="font-weight: 900; font-size: 0.98rem; line-height: 1.2;">Venda de Balcão Rápida</div>
+              <div style="font-size: 0.74rem; opacity: 0.9;">Dinheiro • ¥ 1.000 / porção • Vender & Entregar</div>
+            </div>
+            <span class="btn-balcao-action-tag">⚡ Vender</span>
+          </button>
+        </div>
+
         <!-- Janela de Câmera -->
         <div id="reader"></div>
 
@@ -354,11 +366,18 @@
           <span style="font-size: 0.75rem; color: #9a3412; font-weight: 700;">Ritmo da Cozinha</span>
         </div>
 
-        <!-- Card Financeiro (Apenas Administrativo) -->
+        <!-- Card Financeiro Total (Apenas Administrativo) -->
         <div class="stat-box-glass admin-only">
-          <span class="stat-label-glass">Faturamento</span>
+          <span class="stat-label-glass">Faturamento Total</span>
           <span class="stat-num-glass" id="dash-revenue" style="font-size: 1.6rem;">¥ 0</span>
           <span style="font-size: 0.75rem; color: var(--text-muted);">Total Arrecadado</span>
+        </div>
+
+        <!-- Card Fluxo de Caixa Balcão (Apenas Administrativo) -->
+        <div class="stat-box-glass admin-only highlight-balcao" style="background: linear-gradient(135deg, rgba(236, 253, 245, 0.9) 0%, rgba(209, 250, 229, 0.9) 100%); border-color: #6ee7b7;">
+          <span class="stat-label-glass" style="color: #047857;">🏪 Caixa Balcão</span>
+          <span class="stat-num-glass" id="dash-balcao-revenue" style="font-size: 1.6rem; color: #047857;">¥ 0</span>
+          <span style="font-size: 0.75rem; color: #065f46; font-weight: 700;" id="dash-balcao-count">0 porções no dinheiro</span>
         </div>
 
         <!-- Card Operacional: Status do Atendimento -->
@@ -422,6 +441,9 @@
           </button>
           <button type="button" class="btn-glass btn-secondary-glass filter-status-chip" data-filterstatus="cancelado" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px; color: #dc2626;">
             Cancelados
+          </button>
+          <button type="button" class="btn-glass btn-secondary-glass filter-status-chip" data-filterstatus="balcao" style="width: auto; min-height: 34px; padding: 4px 12px; font-size: 0.78rem; border-radius: 999px; color: #047857; border-color: #6ee7b7; font-weight: 800;">
+            🏪 Só Balcão
           </button>
         </div>
 
@@ -749,6 +771,86 @@
             Voltar / Manter Vale
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE VENDA RÁPIDA DE BALCÃO (FLUXO OTIMIZADO) ==================== -->
+  <div id="balcao-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 420px;">
+      <div class="modal-header-glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.5rem;">🏪</span>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 900; color: #1c1917; margin: 0;">Venda de Balcão</h3>
+            <span style="font-size: 0.72rem; color: #059669; font-weight: 800; text-transform: uppercase;">Atendimento Rápido • Dinheiro (¥ 1.000)</span>
+          </div>
+        </div>
+        <button type="button" id="btn-close-balcao-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body-glass" style="padding: 16px 20px;">
+        <form id="form-balcao-quick">
+          <!-- Quantidade Stepper + Chips -->
+          <div class="form-group-glass" style="margin-bottom: 14px;">
+            <label style="font-size: 0.85rem; font-weight: 800; color: #1c1917;">🍲 Quantidade de Porções:</label>
+            <div class="stepper-container" style="margin: 8px 0;">
+              <button type="button" class="stepper-btn" id="btn-balcao-minus">−</button>
+              <div class="stepper-value-box">
+                <div class="stepper-value" id="balcao-stepper-display">1</div>
+                <div class="stepper-label">porção(ões)</div>
+              </div>
+              <button type="button" class="stepper-btn" id="btn-balcao-plus">+</button>
+            </div>
+            <input type="hidden" id="balcao-quantity" value="1">
+
+            <!-- Chips de Quantidade Rápida -->
+            <div class="qty-chips" style="margin-top: 8px;">
+              <div class="qty-chip active" data-balcaoqty="1">1 Porção</div>
+              <div class="qty-chip" data-balcaoqty="2">2 Porções</div>
+              <div class="qty-chip" data-balcaoqty="3">3 Porções</div>
+              <div class="qty-chip" data-balcaoqty="4">4 Porções</div>
+            </div>
+          </div>
+
+          <!-- Nome Opcional / Identificação Rápida -->
+          <div class="form-group-glass" style="margin-bottom: 14px;">
+            <label for="balcao-buyer-name" style="font-size: 0.85rem; font-weight: 700; color: #1c1917;">
+              👤 Nome do Cliente (Opcional):
+            </label>
+            <input type="text" id="balcao-buyer-name" class="input-glass" placeholder="Ex: Tanaka / Silva (ou deixe em branco)" autocomplete="off">
+          </div>
+
+          <!-- Opção de Entrega Imediata no Balcão -->
+          <div class="form-group-glass" style="background: rgba(240, 253, 244, 0.7); border: 1.5px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin: 0;">
+              <input type="checkbox" id="balcao-auto-deliver" checked style="width: 20px; height: 20px; accent-color: #16a34a; cursor: pointer;">
+              <div>
+                <strong style="color: #15803d; font-size: 0.88rem; display: block;">🍲 Já Entregar na Hora</strong>
+                <span style="font-size: 0.75rem; color: #166534;">Cliente já retira e leva a marmita</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Total a Cobrar Dinheiro -->
+          <div class="price-banner-glass" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: #6ee7b7; margin-bottom: 16px;">
+            <span class="price-banner-label" style="color: #065f46;">💵 Receber em Dinheiro:</span>
+            <span class="price-banner-value" id="balcao-calculated-total" style="color: #047857;">¥ 1.000</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="submit" id="btn-submit-balcao" class="btn-glass btn-large-hero" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);">
+              💰 CONFIRMAR VENDA DE BALCÃO
+            </button>
+            <button type="button" id="btn-cancel-balcao" class="btn-glass btn-secondary-glass">
+              Cancelar / Voltar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL DE LIMPEZA E EXCLUSÃO DE VALES (PURGE) ==================== -->
   <div id="purge-modal" class="modal-overlay-glass">
     <div class="modal-box-glass" style="max-width: 380px;">

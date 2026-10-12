@@ -82,7 +82,7 @@ app.post('/api/config', (req, res) => {
   res.json({ success: true });
 });
 
-// Estatísticas e Telemetria em Tempo Real (Dashboard da Logística)
+// Estatísticas e Telemetria em Tempo Real (Dashboard da Logística e Caixa)
 app.get('/api/stats', (req, res) => {
   try {
     const totalRow = db.prepare(`
@@ -92,6 +92,15 @@ app.get('/api/stats', (req, res) => {
         COALESCE(SUM(delivered_quantity), 0) as total_delivered,
         COALESCE(SUM(total_price), 0) as total_revenue
       FROM tickets WHERE status != 'cancelado'
+    `).get();
+
+    const balcaoRow = db.prepare(`
+      SELECT 
+        COUNT(id) as balcao_tickets,
+        COALESCE(SUM(quantity), 0) as balcao_feijoadas,
+        COALESCE(SUM(total_price), 0) as balcao_revenue
+      FROM tickets 
+      WHERE status != 'cancelado' AND sale_channel = 'balcao'
     `).get();
 
     const pendingFeijoadas = (totalRow.total_feijoadas || 0) - (totalRow.total_delivered || 0);
@@ -122,6 +131,9 @@ app.get('/api/stats', (req, res) => {
       total_delivered: totalRow.total_delivered || 0,
       pending_feijoadas: Math.max(0, pendingFeijoadas),
       total_revenue: totalRow.total_revenue || 0,
+      balcao_tickets: balcaoRow.balcao_tickets || 0,
+      balcao_feijoadas: balcaoRow.balcao_feijoadas || 0,
+      balcao_revenue: balcaoRow.balcao_revenue || 0,
       completion_percentage: totalRow.total_feijoadas > 0 
         ? Math.round((totalRow.total_delivered / totalRow.total_feijoadas) * 100) 
         : 0,
@@ -137,7 +149,7 @@ app.get('/api/stats', (req, res) => {
 // Listar Tickets com Filtro
 app.get('/api/tickets', (req, res) => {
   try {
-    const { search, status } = req.query;
+    const { search, status, channel } = req.query;
     let query = 'SELECT * FROM tickets WHERE 1=1';
     const params = [];
 
@@ -152,6 +164,11 @@ app.get('/api/tickets', (req, res) => {
       params.push(status);
     }
 
+    if (channel && channel !== 'todos') {
+      query += ' AND sale_channel = ?';
+      params.push(channel);
+    }
+
     query += ' ORDER BY id DESC';
     const tickets = db.prepare(query).all(...params);
     res.json(tickets);
@@ -160,12 +177,28 @@ app.get('/api/tickets', (req, res) => {
   }
 });
 
-// Criar Novo Ticket (Venda)
+// Criar Novo Ticket (Venda Antecipada ou Venda de Balcão)
 app.post('/api/tickets', async (req, res) => {
   try {
-    const { buyer_name, buyer_phone, quantity, unit_price, payment_status, payment_method, payment_date, notes } = req.body;
+    const { 
+      buyer_name, 
+      buyer_phone, 
+      quantity, 
+      unit_price, 
+      payment_status, 
+      payment_method, 
+      payment_date, 
+      notes, 
+      sale_channel, 
+      auto_deliver 
+    } = req.body;
 
-    if (!buyer_name || !buyer_name.trim()) {
+    const finalSaleChannel = sale_channel === 'balcao' ? 'balcao' : 'antecipado';
+    const finalBuyerName = (buyer_name && buyer_name.trim()) 
+      ? buyer_name.trim() 
+      : (finalSaleChannel === 'balcao' ? 'Cliente Balcão' : '');
+
+    if (!finalBuyerName) {
       return res.status(400).json({ error: 'O nome do comprador é obrigatório.' });
     }
 
@@ -194,27 +227,43 @@ app.post('/api/tickets', async (req, res) => {
     const finalPaymentStatus = payment_status || 'pago';
     const finalPaymentDate = payment_date !== undefined ? payment_date : (finalPaymentStatus === 'pago' ? todayStr : '');
 
+    const isAutoDeliver = Boolean(auto_deliver);
+    const initialDeliveredQty = isAutoDeliver ? qty : 0;
+    const initialStatus = isAutoDeliver ? 'entregue' : 'ativo';
+
     const insert = db.prepare(`
       INSERT INTO tickets (
         code, buyer_name, buyer_phone, quantity, delivered_quantity,
-        unit_price, total_price, payment_status, payment_method, payment_date, status, notes
-      ) VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 'ativo', ?)
+        unit_price, total_price, payment_status, payment_method, payment_date, status, notes, sale_channel
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = insert.run(
       code,
-      buyer_name.trim(),
+      finalBuyerName,
       (buyer_phone || '').trim(),
       qty,
+      initialDeliveredQty,
       finalUnitPrice,
       totalPrice,
       finalPaymentStatus,
       payment_method || 'dinheiro',
       finalPaymentDate,
-      (notes || '').trim()
+      initialStatus,
+      (notes || '').trim(),
+      finalSaleChannel
     );
 
-    const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(result.lastInsertRowid);
+    const ticketId = result.lastInsertRowid;
+
+    if (isAutoDeliver) {
+      db.prepare(`
+        INSERT INTO deliveries (ticket_id, ticket_code, quantity_delivered, delivered_by)
+        VALUES (?, ?, ?, ?)
+      `).run(ticketId, code, qty, 'Balcão (Venda Direta)');
+    }
+
+    const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
     
     // Gera QR Code base64 data URL
     const qrDataUrl = await QRCode.toDataURL(ticket.code, {
@@ -228,6 +277,9 @@ app.post('/api/tickets', async (req, res) => {
     });
 
     broadcastEvent('ticket_created', ticket);
+    if (isAutoDeliver) {
+      broadcastEvent('ticket_delivered', { ticket, delivered_now: qty });
+    }
 
     res.status(201).json({
       success: true,
@@ -645,10 +697,11 @@ app.get('/api/export/csv', (req, res) => {
     const config = db.prepare("SELECT value FROM config WHERE key = 'currency_symbol'").get();
     const symbol = config?.value || '¥';
     
-    let csv = `ID;Codigo;Nome Comprador;Telefone;Qtd Vendida;Qtd Entregue;Preco Total (${symbol});Data Pagamento;Forma Pagamento;Status Pagamento;Status Ticket;Criado Em;Atualizado Em;Observacoes\n`;
+    let csv = `ID;Codigo;Canal de Venda;Nome Comprador;Telefone;Qtd Vendida;Qtd Entregue;Preco Total (${symbol});Data Pagamento;Forma Pagamento;Status Pagamento;Status Ticket;Criado Em;Atualizado Em;Observacoes\n`;
     
     tickets.forEach(t => {
-      csv += `${t.id};"${t.code}";"${t.buyer_name.replace(/"/g, '""')}";"${t.buyer_phone}";${t.quantity};${t.delivered_quantity};${Math.round(t.total_price)};"${t.payment_date || ''}";"${t.payment_method || 'dinheiro'}";"${t.payment_status}";"${t.status}";"${t.created_at}";"${t.updated_at}";"${(t.notes || '').replace(/"/g, '""')}"\n`;
+      const canalLabel = t.sale_channel === 'balcao' ? 'Balcão' : 'Antecipado';
+      csv += `${t.id};"${t.code}";"${canalLabel}";"${t.buyer_name.replace(/"/g, '""')}";"${t.buyer_phone}";${t.quantity};${t.delivered_quantity};${Math.round(t.total_price)};"${t.payment_date || ''}";"${t.payment_method || 'dinheiro'}";"${t.payment_status}";"${t.status}";"${t.created_at}";"${t.updated_at}";"${(t.notes || '').replace(/"/g, '""')}"\n`;
     });
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
