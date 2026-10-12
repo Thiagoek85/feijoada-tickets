@@ -526,20 +526,115 @@ function ensureHtml5QrInstance() {
   }
 }
 
+// Utilitário para carregar File/Blob em HTMLImageElement
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url);
+      reject(err);
+    };
+    img.src = url;
+  });
+}
+
+// Pipeline multi-camada para decodificar QR Code em fotos tiradas no iPhone (iOS Safari)
+async function decodeQrCodeFromImageFile(file) {
+  // 1. Tentar decodificação nativa de ultra-alta velocidade via BarcodeDetector (iOS 17+ / Android / Chrome)
+  if ('BarcodeDetector' in window) {
+    try {
+      const barcodeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      const img = await loadImageFromFile(file);
+      const barcodes = await barcodeDetector.detect(img);
+      if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+        return barcodes[0].rawValue;
+      }
+    } catch (e) {
+      console.warn("BarcodeDetector falhou ou formato nao compativel, tentando fallback com jsQR:", e);
+    }
+  }
+
+  // 2. Tentar jsQR com downscale inteligente (evita estouro de memoria no Safari com fotos de 12MP/48MP)
+  if (typeof jsQR !== 'undefined') {
+    try {
+      const img = await loadImageFromFile(file);
+      
+      // Testar em diferentes resoluções otimizadas para reconhecimento de QR Code
+      const targetSizes = [1000, 700, 1400];
+      for (const maxDim of targetSizes) {
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+        
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) continue;
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert"
+        });
+
+        if (code && code.data) {
+          return code.data;
+        }
+
+        // Tenta também com inversão de contraste caso seja fundo escuro
+        const codeInverted = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "onlyInvert"
+        });
+        if (codeInverted && codeInverted.data) {
+          return codeInverted.data;
+        }
+      }
+    } catch (e) {
+      console.warn("jsQR pipeline falhou:", e);
+    }
+  }
+
+  // 3. Fallback clássico Html5Qrcode
+  ensureHtml5QrInstance();
+  if (html5QrCode) {
+    return await html5QrCode.scanFile(file, true);
+  }
+
+  throw new Error("Não foi possível decodificar o QR Code");
+}
+
 async function handleImageFileScan(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
 
-  ensureHtml5QrInstance();
   const statusEl = document.getElementById('scanner-status-text');
   statusEl.innerHTML = '⏳ <strong>Analisando imagem do QR Code...</strong>';
 
   try {
-    const decodedText = await html5QrCode.scanFile(file, true);
-    statusEl.innerHTML = '✅ QR Code lido com sucesso!';
-    onScanSuccess(decodedText);
+    const decodedText = await decodeQrCodeFromImageFile(file);
+    if (decodedText) {
+      statusEl.innerHTML = '✅ QR Code lido com sucesso!';
+      onScanSuccess(decodedText);
+    } else {
+      throw new Error("Nenhum dado encontrado");
+    }
   } catch (err) {
-    statusEl.innerHTML = '❌ <strong>Não foi possível identificar o QR Code na foto.</strong> Tente aproximar mais a câmera.';
+    statusEl.innerHTML = '❌ <strong>Não foi possível identificar o QR Code na foto.</strong> Tente aproximar mais a câmera ou centralizar o código.';
     playErrorSound();
   } finally {
     e.target.value = '';
@@ -550,7 +645,16 @@ function startScanner() {
   ensureHtml5QrInstance();
   if (!html5QrCode) return;
 
-  const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+  // No Safari / iPhone, qrbox dinâmico evita erros de proporção do viewport de vídeo
+  const qrConfig = {
+    fps: 12,
+    qrbox: (viewfinderWidth, viewfinderHeight) => {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      const edge = Math.max(180, Math.floor(minEdge * 0.75));
+      return { width: edge, height: edge };
+    },
+    aspectRatio: 1.0
+  };
   const statusEl = document.getElementById('scanner-status-text');
 
   html5QrCode.start(
@@ -562,6 +666,16 @@ function startScanner() {
     isScannerRunning = true;
     document.getElementById('btn-toggle-camera').textContent = '⏹️ Pausar Câmera';
     statusEl.textContent = '🎥 Câmera ativa. Aponte para o QR Code.';
+
+    // Forçar playsinline e webkit-playsinline no Safari iOS para garantir stream contínuo
+    const videoEl = document.querySelector('#reader video');
+    if (videoEl) {
+      videoEl.setAttribute('playsinline', 'true');
+      videoEl.setAttribute('webkit-playsinline', 'true');
+      videoEl.setAttribute('muted', 'true');
+      videoEl.setAttribute('autoplay', 'true');
+      videoEl.play().catch(() => {});
+    }
   }).catch(err => {
     isScannerRunning = false;
     document.getElementById('btn-toggle-camera').textContent = '🎥 Vídeo Contínuo';

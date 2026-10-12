@@ -582,8 +582,8 @@ body::after {
 /* SCANNER / RESULTADO */
 #reader {
   width: 100%;
-  max-width: 270px;
-  max-height: 175px;
+  max-width: 280px;
+  min-height: 190px;
   margin: 0 auto 10px auto;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -591,12 +591,13 @@ body::after {
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   background: #000;
   display: block;
+  position: relative;
 }
 
 #reader video {
   object-fit: cover !important;
-  max-height: 175px !important;
   width: 100% !important;
+  height: 100% !important;
 }
 
 /* GRADE DE AÇÕES PRINCIPAIS EM DESTAQUE GIGANTE */
