@@ -96,12 +96,12 @@
                 <div>
                   <div style="font-weight: 800; font-size: 0.95rem; color: #1c1917;">Pagamento em Dinheiro</div>
                   <div id="sales-paydate-label" style="font-size: 0.78rem; color: #15803d; font-weight: 700;">
-                    📅 Pago em: <span id="sales-paydate-text">Hoje</span>
+                    🟢 <span id="sales-paystatus-text">Pago</span> • 📅 <span id="sales-paydate-text">Hoje</span>
                   </div>
                 </div>
               </div>
               <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger">
-                📅 Alterar Dia
+                📅 Data / Status
               </button>
             </div>
             <input type="hidden" id="payment_method" value="dinheiro">
@@ -420,7 +420,7 @@
                   </div>
                 </div>
                 <button type="button" id="btn-open-calendar-edit" class="btn-calendar-trigger">
-                  📅 Alterar Dia
+                  📅 Data / Status
                 </button>
               </div>
               <input type="hidden" id="edit_payment_method" value="dinheiro">
@@ -526,34 +526,57 @@
         <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">📅 Dia do Pagamento</h3>
         <button type="button" id="btn-close-calendar" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
       </div>
-      <div class="modal-body-glass" style="text-align: left; padding: 20px;">
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-          Selecione o dia em que o valor em dinheiro foi entregue:
-        </p>
-
-        <!-- Atalhos rápidos de data -->
-        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-          <button type="button" id="btn-date-shortcut-today" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
-            Hoje
-          </button>
-          <button type="button" id="btn-date-shortcut-yesterday" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
-            Ontem
-          </button>
-          <button type="button" id="btn-date-shortcut-event" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 38px; font-size: 0.8rem; padding: 6px;">
-            Dia do Evento
-          </button>
-        </div>
-
-        <div class="form-group-glass">
-          <label for="calendar-date-picker" style="font-size: 0.85rem; font-weight: 700; color: #1c1917; margin-bottom: 6px; display: block;">
-            Escolher no Calendário:
+        <!-- STATUS DO PAGAMENTO: Pago ou Pendente -->
+        <div class="form-group-glass" style="margin-bottom: 14px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #1c1917; margin-bottom: 6px; display: block;">
+            Status do Pagamento:
           </label>
-          <input type="date" id="calendar-date-picker" class="input-glass" style="font-size: 1.1rem; font-weight: 800; padding: 12px; text-align: center; color: #c2410c;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="payment-chip active" id="modal-chip-status-pago" data-modalpaystatus="pago" style="padding: 10px 12px;">
+              <span class="payment-chip-icon" style="font-size: 1.2rem;">🟢</span>
+              <div class="payment-chip-info">
+                <span class="payment-chip-name" style="font-size: 0.85rem;">Pago</span>
+                <span class="payment-chip-desc" style="font-size: 0.68rem;">Confirmado</span>
+              </div>
+            </div>
+            <div class="payment-chip" id="modal-chip-status-pendente" data-modalpaystatus="pendente" style="padding: 10px 12px;">
+              <span class="payment-chip-icon" style="font-size: 1.2rem;">🟡</span>
+              <div class="payment-chip-info">
+                <span class="payment-chip-name" style="font-size: 0.85rem;">Pendente</span>
+                <span class="payment-chip-desc" style="font-size: 0.68rem;">Na Entrega</span>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" id="modal-payment-status-val" value="pago">
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+        <!-- Seção de Data (aparece destacada se pago) -->
+        <div id="modal-date-section">
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+            📅 Data em que foi pago em dinheiro:
+          </p>
+
+          <!-- Atalhos rápidos de data -->
+          <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+            <button type="button" id="btn-date-shortcut-today" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 36px; font-size: 0.78rem; padding: 4px;">
+              Hoje
+            </button>
+            <button type="button" id="btn-date-shortcut-yesterday" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 36px; font-size: 0.78rem; padding: 4px;">
+              Ontem
+            </button>
+            <button type="button" id="btn-date-shortcut-event" class="btn-glass btn-secondary-glass" style="flex: 1; min-height: 36px; font-size: 0.78rem; padding: 4px;">
+              18/10
+            </button>
+          </div>
+
+          <div class="form-group-glass" style="margin-bottom: 12px;">
+            <input type="date" id="calendar-date-picker" class="input-glass" style="font-size: 1.05rem; font-weight: 800; padding: 10px; text-align: center; color: #c2410c;">
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
           <button type="button" id="btn-confirm-calendar-date" class="btn-glass btn-success-glass btn-large-hero">
-            ✅ CONFIRMAR DIA
+            ✅ CONFIRMAR PAGAMENTO
           </button>
           <button type="button" id="btn-cancel-calendar-modal" class="btn-glass btn-secondary-glass">
             Voltar

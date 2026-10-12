@@ -243,7 +243,7 @@ function setupSalesForm() {
       buyer_phone: document.getElementById('buyer_phone').value.trim(),
       quantity: parseInt(qtyHidden.value, 10) || 1,
       payment_method: 'dinheiro',
-      payment_status: 'pago',
+      payment_status: document.getElementById('payment_status')?.value || 'pago',
       payment_date: (salesPayDateHidden ? salesPayDateHidden.value : '') || todayIso,
       notes: document.getElementById('ticket_notes').value.trim()
     };
@@ -1187,11 +1187,44 @@ function openCalendarModal(context, initialDate) {
   const modal = document.getElementById('calendar-modal');
   const dateInput = document.getElementById('calendar-date-picker');
 
+  // Obter o status atual do contexto
+  let currentStatus = 'pago';
+  if (context === 'sales') {
+    currentStatus = document.getElementById('payment_status')?.value || 'pago';
+  } else if (context === 'edit') {
+    currentStatus = document.getElementById('edit_payment_status')?.value || 'pago';
+  }
+
+  setModalPaymentStatus(currentStatus);
+
   const todayStr = new Date().toISOString().split('T')[0];
   const dateToUse = initialDate || todayStr;
   if (dateInput) dateInput.value = dateToUse;
 
   if (modal) modal.classList.add('active');
+}
+
+function setModalPaymentStatus(status) {
+  const hiddenInput = document.getElementById('modal-payment-status-val');
+  if (hiddenInput) hiddenInput.value = status;
+
+  const chipPago = document.getElementById('modal-chip-status-pago');
+  const chipPendente = document.getElementById('modal-chip-status-pendente');
+  const dateSection = document.getElementById('modal-date-section');
+
+  if (chipPago && chipPendente) {
+    chipPago.classList.toggle('active', status === 'pago');
+    chipPendente.classList.toggle('active', status === 'pendente');
+  }
+
+  if (dateSection) {
+    // Se estiver pendente, diminuir a opacidade da data mas ainda permitir registrar
+    if (status === 'pendente') {
+      dateSection.style.opacity = '0.65';
+    } else {
+      dateSection.style.opacity = '1';
+    }
+  }
 }
 
 function closeCalendarModal() {
@@ -1209,6 +1242,23 @@ function setupCalendarModal() {
   const btnToday = document.getElementById('btn-date-shortcut-today');
   const btnYesterday = document.getElementById('btn-date-shortcut-yesterday');
   const btnEvent = document.getElementById('btn-date-shortcut-event');
+
+  const chipPago = document.getElementById('modal-chip-status-pago');
+  const chipPendente = document.getElementById('modal-chip-status-pendente');
+
+  if (chipPago) {
+    chipPago.addEventListener('click', () => {
+      triggerHaptic('light');
+      setModalPaymentStatus('pago');
+    });
+  }
+
+  if (chipPendente) {
+    chipPendente.addEventListener('click', () => {
+      triggerHaptic('light');
+      setModalPaymentStatus('pendente');
+    });
+  }
 
   if (btnClose) btnClose.addEventListener('click', closeCalendarModal);
   if (btnCancel) btnCancel.addEventListener('click', closeCalendarModal);
@@ -1252,18 +1302,31 @@ function setupCalendarModal() {
   if (btnConfirm) {
     btnConfirm.addEventListener('click', () => {
       triggerHaptic('success');
+      const selectedStatus = document.getElementById('modal-payment-status-val')?.value || 'pago';
       const selectedDate = dateInput ? dateInput.value : '';
-      if (!selectedDate) {
-        alert('Por favor, selecione uma data no calendário.');
-        return;
-      }
 
       if (calendarContext === 'sales') {
-        const salesHidden = document.getElementById('payment_date');
-        const salesText = document.getElementById('sales-paydate-text');
-        if (salesHidden) salesHidden.value = selectedDate;
-        if (salesText) salesText.textContent = formatDatePretty(selectedDate);
+        const salesStatusHidden = document.getElementById('payment_status');
+        const salesDateHidden = document.getElementById('payment_date');
+        const salesStatusText = document.getElementById('sales-paystatus-text');
+        const salesDateText = document.getElementById('sales-paydate-text');
+        const salesLabel = document.getElementById('sales-paydate-label');
+
+        if (salesStatusHidden) salesStatusHidden.value = selectedStatus;
+        if (salesDateHidden) salesDateHidden.value = selectedDate;
+
+        if (salesStatusText) {
+          salesStatusText.textContent = selectedStatus === 'pago' ? 'Pago' : 'Pendente';
+        }
+        if (salesDateText) {
+          salesDateText.textContent = selectedDate ? formatDatePretty(selectedDate) : 'Sem data';
+        }
+        if (salesLabel) {
+          salesLabel.style.color = selectedStatus === 'pago' ? '#15803d' : '#d97706';
+        }
+
       } else if (calendarContext === 'edit') {
+        setEditPaymentStatus(selectedStatus);
         setEditPaymentDate(selectedDate);
       }
 
