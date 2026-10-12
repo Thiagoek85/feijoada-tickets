@@ -166,68 +166,73 @@
           <span style="font-size: 0.8rem; font-weight: 600; color: #ea580c;">Gera QR Code na hora</span>
         </div>
 
-        <form id="form-new-ticket">
+        <form id="form-new-ticket" class="form-compact-screen">
           
-          <!-- Nome do Comprador -->
-          <div class="form-group-glass">
-            <label for="buyer_name">👤 Nome do Comprador / Família *</label>
-            <input type="text" id="buyer_name" class="input-glass" placeholder="Ex: Tanaka / Família Silva" required autocomplete="off">
-          </div>
-
-          <!-- Celular / WhatsApp -->
-          <div class="form-group-glass">
-            <label for="buyer_phone">📱 WhatsApp / Celular no Japão</label>
-            <input type="tel" id="buyer_phone" class="input-glass" placeholder="Ex: 090-1234-5678 ou 11987654321">
-          </div>
-
-          <!-- Seletor de Quantidade Stepper Tátil -->
-          <div class="form-group-glass">
-            <label>🍲 Quantidade de Feijoadas</label>
-            <div class="stepper-container">
-              <button type="button" class="stepper-btn" id="btn-qty-minus">−</button>
-              <div class="stepper-value-box">
-                <div class="stepper-value" id="stepper-display">1</div>
-                <div class="stepper-label">porção(ões)</div>
-              </div>
-              <button type="button" class="stepper-btn" id="btn-qty-plus">+</button>
+          <!-- Linha 1: Nome do Comprador + Celular/WhatsApp (2 Colunas) -->
+          <div class="sales-row-2col">
+            <div class="form-group-glass">
+              <label for="buyer_name">👤 Nome / Família *</label>
+              <input type="text" id="buyer_name" class="input-glass" placeholder="Ex: Tanaka / Silva" required autocomplete="off">
             </div>
-            <input type="hidden" id="ticket_quantity" value="1">
-
-            <!-- Atalhos de Quantidade Rápida -->
-            <div class="qty-chips">
-              <div class="qty-chip active" data-qty="1">1 Porção</div>
-              <div class="qty-chip" data-qty="2">2 Porções</div>
-              <div class="qty-chip" data-qty="3">3 Porções</div>
-              <div class="qty-chip" data-qty="4">4 Porções</div>
+            <div class="form-group-glass">
+              <label for="buyer_phone">📱 WhatsApp / Celular</label>
+              <input type="tel" id="buyer_phone" class="input-glass" placeholder="090-1234-5678">
             </div>
           </div>
 
-          <!-- Pagamento Padrão em Dinheiro + Seleção de Data por Calendário -->
-          <div class="form-group-glass">
-            <label>💵 Pagamento (Padrão: Dinheiro)</label>
-            <div class="payment-cash-card">
-              <div class="payment-cash-info">
-                <span style="font-size: 1.8rem;">💵</span>
-                <div>
-                  <div style="font-weight: 800; font-size: 0.95rem; color: #1c1917;">Pagamento em Dinheiro</div>
-                  <div id="sales-paydate-label" style="font-size: 0.78rem; color: #15803d; font-weight: 700;">
-                    🟢 <span id="sales-paystatus-text">Pago</span> • 📅 <span id="sales-paydate-text">Hoje</span>
-                  </div>
+          <!-- Linha 2: Quantidade (Stepper + Chips) + Pagamento Dinheiro lado a lado -->
+          <div class="sales-row-2col sales-row-mid">
+            <!-- Coluna Esquerda: Stepper e Chips de Porção -->
+            <div class="form-group-glass">
+              <label>🍲 Quantidade de Feijoadas</label>
+              <div class="stepper-container">
+                <button type="button" class="stepper-btn" id="btn-qty-minus">−</button>
+                <div class="stepper-value-box">
+                  <div class="stepper-value" id="stepper-display">1</div>
+                  <div class="stepper-label">porção(ões)</div>
                 </div>
+                <button type="button" class="stepper-btn" id="btn-qty-plus">+</button>
               </div>
-              <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger">
-                📅 Data / Status
-              </button>
-            </div>
-            <input type="hidden" id="payment_method" value="dinheiro">
-            <input type="hidden" id="payment_status" value="pago">
-            <input type="hidden" id="payment_date" value="">
-          </div>
+              <input type="hidden" id="ticket_quantity" value="1">
 
-          <!-- Observações -->
-          <div class="form-group-glass">
-            <label for="ticket_notes">📝 Observações da Cozinha (Opcional)</label>
-            <input type="text" id="ticket_notes" class="input-glass" placeholder="Ex: Viagem, sem couve, entrega às 12:30">
+              <!-- Atalhos de Quantidade Rápida -->
+              <div class="qty-chips">
+                <div class="qty-chip active" data-qty="1">1 Porção</div>
+                <div class="qty-chip" data-qty="2">2 Porções</div>
+                <div class="qty-chip" data-qty="3">3 Porções</div>
+                <div class="qty-chip" data-qty="4">4 Porções</div>
+              </div>
+            </div>
+
+            <!-- Coluna Direita: Pagamento Padrão Dinheiro + Observação Cozinha -->
+            <div>
+              <div class="form-group-glass" style="margin-bottom: 8px;">
+                <label>💵 Pagamento (Padrão: Dinheiro)</label>
+                <div class="payment-cash-card">
+                  <div class="payment-cash-info">
+                    <span style="font-size: 1.4rem;">💵</span>
+                    <div>
+                      <div style="font-weight: 800; font-size: 0.88rem; color: #1c1917;">Dinheiro</div>
+                      <div id="sales-paydate-label" style="font-size: 0.75rem; color: #15803d; font-weight: 700;">
+                        🟢 <span id="sales-paystatus-text">Pago</span> • 📅 <span id="sales-paydate-text">Hoje</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger">
+                    📅 Data
+                  </button>
+                </div>
+                <input type="hidden" id="payment_method" value="dinheiro">
+                <input type="hidden" id="payment_status" value="pago">
+                <input type="hidden" id="payment_date" value="">
+              </div>
+
+              <!-- Observações -->
+              <div class="form-group-glass">
+                <label for="ticket_notes">📝 Obs Cozinha (Opcional)</label>
+                <input type="text" id="ticket_notes" class="input-glass" placeholder="Ex: Viagem, sem couve">
+              </div>
+            </div>
           </div>
 
           <!-- Banner do Total a Pagar -->
@@ -480,51 +485,52 @@
           <span class="stat-label-glass">Status Cozinha</span>
           <span class="stat-num-glass" style="font-size: 1.45rem; color: #16a34a;">🟢 Pronta</span>
           <span style="font-size: 0.75rem; color: var(--text-muted);">Entregas liberadas</span>
+        </div>
+      </div>
+
+      <!-- Barra de Progresso Glass Integrada Compacta -->
+      <div class="glass-card dash-progress-card">
+        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">
+          <span>Progresso de Entregas</span>
+          <span id="dash-progress-label">0%</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.06); height: 12px; border-radius: 999px; overflow: hidden;">
+          <div id="dash-progress-bar" style="background: linear-gradient(90deg, #ea580c, #16a34a); height: 100%; width: 0%; border-radius: 999px; transition: width 0.4s ease;"></div>
+        </div>
       </div>
 
       <!-- Banner de Fechamento de Caixa Unificado (Apenas Administrativo) -->
-      <div class="glass-card admin-only" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac; padding: 18px 20px; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div class="glass-card admin-only dash-cashflow-banner">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div>
-            <div style="font-size: 1.15rem; font-weight: 900; color: #166534; display: flex; align-items: center; gap: 8px;">
+            <div style="font-size: 1.05rem; font-weight: 900; color: #166534; display: flex; align-items: center; gap: 6px;">
               <span>📋</span> Fechamento de Caixa Unificado
             </div>
-            <div style="font-size: 0.8rem; color: #15803d; margin-top: 2px;">
-              Unifica vendas de todos os smartphones e faz o acerto de contas individual por colaborador.
+            <div style="font-size: 0.76rem; color: #15803d; margin-top: 2px;">
+              Acerto de contas individual por smartphone/colaborador.
             </div>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" id="btn-open-cashflow-modal" class="btn-glass btn-large-hero" style="background: #16a34a; color: white; width: auto; min-height: 40px; padding: 8px 18px; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
-              📊 Abrir Relatório do Caixa
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" id="btn-open-cashflow-modal" class="btn-glass" style="background: #16a34a; color: white; width: auto; min-height: 34px; padding: 6px 14px; font-size: 0.82rem; border-radius: var(--radius-sm);">
+              📊 Ver Caixa
             </button>
-            <a href="api/export/cashflow-csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 40px; padding: 8px 14px; font-size: 0.85rem; text-decoration: none;">
-              📥 Excel do Caixa
+            <a href="api/export/cashflow-csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 34px; padding: 6px 12px; font-size: 0.8rem; text-decoration: none; border-radius: var(--radius-sm);">
+              📥 Excel
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Barra de Progresso Glass -->
-      <div class="glass-card" style="padding: 18px 20px;">
-        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; margin-bottom: 8px;">
-          <span>Progresso de Entregas</span>
-          <span id="dash-progress-label">0%</span>
-        </div>
-        <div style="background: rgba(0,0,0,0.06); height: 16px; border-radius: 999px; overflow: hidden;">
-          <div id="dash-progress-bar" style="background: linear-gradient(90deg, #ea580c, #16a34a); height: 100%; width: 0%; border-radius: 999px; transition: width 0.4s ease;"></div>
-        </div>
-      </div>
-
-      <!-- Feed Recente de Saídas -->
-      <div class="glass-card">
-        <div class="glass-card-title">
-          <span>Últimas Saídas da Cozinha</span>
-          <button type="button" id="btn-refresh-stats" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 36px; padding: 6px 14px; font-size: 0.8rem;">
+      <!-- Feed Recente de Saídas com Rolagem Interna Compacta -->
+      <div class="glass-card dash-feed-card">
+        <div class="glass-card-title" style="margin-bottom: 8px;">
+          <span style="font-size: 0.95rem;">Últimas Saídas da Cozinha</span>
+          <button type="button" id="btn-refresh-stats" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 30px; padding: 4px 10px; font-size: 0.75rem;">
             🔄 Atualizar
           </button>
         </div>
-        <div id="recent-deliveries-list" style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma entrega ainda.</div>
+        <div id="recent-deliveries-list" class="recent-deliveries-scroll">
+          <div style="text-align: center; color: var(--text-muted); padding: 12px; font-size: 0.85rem;">Nenhuma entrega ainda.</div>
         </div>
       </div>
     </section>

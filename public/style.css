@@ -1418,3 +1418,203 @@ body.mode-admin .operational-only {
   50% { transform: scale(1.015); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25); }
   100% { transform: scale(1); }
 }
+
+/* ==================== OTIMIZAÇÃO ZERO-SCROLL / VIEWPORT COMPACTO ==================== */
+/* Formulário Adicionar Compra sem rolagem */
+#tab-sales .glass-card {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+#tab-sales .glass-card-title {
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+}
+
+.sales-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+#tab-sales .form-group-glass {
+  margin-bottom: 8px;
+}
+
+#tab-sales .form-group-glass label {
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#tab-sales .input-glass {
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+}
+
+#tab-sales .stepper-container {
+  padding: 4px 6px;
+  gap: 8px;
+}
+
+#tab-sales .stepper-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+  border-radius: 10px;
+}
+
+#tab-sales .stepper-value {
+  font-size: 1.4rem;
+}
+
+#tab-sales .stepper-label {
+  font-size: 0.7rem;
+}
+
+#tab-sales .qty-chips {
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#tab-sales .qty-chip {
+  padding: 6px 2px;
+  font-size: 0.78rem;
+  border-radius: 10px;
+}
+
+#tab-sales .payment-cash-card {
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+
+#tab-sales .btn-calendar-trigger {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  border-radius: 10px;
+}
+
+#tab-sales .price-banner-glass {
+  padding: 10px 14px;
+  margin: 8px 0 10px 0;
+  border-radius: 12px;
+}
+
+#tab-sales .price-banner-label {
+  font-size: 0.82rem;
+}
+
+#tab-sales .price-banner-value {
+  font-size: 1.6rem;
+}
+
+#tab-sales #btn-submit-sale {
+  min-height: 48px;
+  padding: 10px 16px;
+  font-size: 0.98rem;
+  border-radius: 14px;
+}
+
+/* Aba Cozinha & Logística sem rolagem */
+#tab-dashboard .stats-grid-glass {
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#tab-dashboard .stat-box-glass {
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+#tab-dashboard .stat-label-glass {
+  font-size: 0.7rem;
+}
+
+#tab-dashboard .stat-num-glass {
+  font-size: 1.55rem;
+  margin: 2px 0 1px 0;
+}
+
+.dash-progress-card {
+  padding: 10px 14px !important;
+  margin-bottom: 10px !important;
+  border-radius: 14px !important;
+}
+
+.dash-cashflow-banner {
+  padding: 10px 14px !important;
+  margin-bottom: 10px !important;
+  border-radius: 14px !important;
+}
+
+.dash-feed-card {
+  padding: 12px 14px !important;
+  margin-bottom: 10px !important;
+  border-radius: 16px !important;
+}
+
+.recent-deliveries-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+
+.recent-deliveries-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.recent-deliveries-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+/* Otimização especial para modo operacional na Cozinha: Grade de 3 colunas compacta */
+body.mode-operacional #tab-dashboard .stats-grid-glass {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+body.mode-operacional #tab-dashboard .stat-num-glass {
+  font-size: 1.45rem;
+}
+
+body.mode-operacional #tab-dashboard .stat-box-glass {
+  padding: 8px 10px;
+}
+
+/* Redução sutil do padding geral em telas mobile para garantir zero scroll */
+@media (max-height: 850px) {
+  body {
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  }
+  .app-header {
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px 16px;
+  }
+  .app-icon-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+  .header-title-box h1 {
+    font-size: 1.02rem;
+  }
+  .main-container {
+    margin: 8px auto;
+    padding: 0 12px;
+  }
+  .ios-floating-dock {
+    padding: 6px 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .dock-item {
+    padding: 6px 2px;
+  }
+}
