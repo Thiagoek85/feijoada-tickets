@@ -561,6 +561,35 @@
         </div>
       </div>
     </div>
+  <!-- ==================== MODAL DE CONFIRMAÇÃO DE CANCELAMENTO ==================== -->
+  <div id="cancel-confirm-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 360px;">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #dc2626;">🗑️ Cancelar Vale</h3>
+        <button type="button" id="btn-close-cancel-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="text-align: center; padding: 20px;">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">⚠️</div>
+        <p style="font-size: 0.95rem; color: #1c1917; font-weight: 700; margin-bottom: 8px;">
+          Deseja realmente cancelar este vale?
+        </p>
+        <div id="cancel-modal-ticket-info" style="font-size: 0.88rem; color: var(--text-muted); background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 10px; margin-bottom: 16px;">
+          Código: <strong id="cancel-modal-code" style="color: #dc2626;">FEIJ-0000</strong><br>
+          Comprador: <strong id="cancel-modal-name">-</strong>
+        </div>
+        <p style="font-size: 0.8rem; color: #78716c; margin-bottom: 16px;">
+          Esta ação anula o QR Code para retirada da feijoada.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" id="btn-confirm-delete-action" class="btn-glass btn-large-hero" style="background: #dc2626; color: white; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);">
+            🗑️ SIM, CANCELAR VALE
+          </button>
+          <button type="button" id="btn-abort-delete-action" class="btn-glass btn-secondary-glass">
+            Voltar / Manter Vale
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

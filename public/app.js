@@ -680,15 +680,26 @@ async function loadTickets() {
     }
 
     container.innerHTML = tickets.map(t => {
-      const isDone = t.status === 'entregue';
-      const badgeClass = isDone ? 'badge-entregue' : 'badge-ativo';
-      const badgeText = isDone ? 'ENTREGUE' : 'PENDENTE';
+      let badgeClass = 'badge-ativo';
+      let badgeText = 'PENDENTE';
+      let isCancelled = t.status === 'cancelado';
+
+      if (t.status === 'cancelado') {
+        badgeClass = 'badge-cancelado';
+        badgeText = 'CANCELADO';
+      } else if (t.status === 'entregue') {
+        badgeClass = 'badge-entregue';
+        badgeText = 'ENTREGUE';
+      } else if (t.status === 'parcial') {
+        badgeClass = 'badge-parcial';
+        badgeText = `PARCIAL (${t.delivered_quantity}/${t.quantity})`;
+      }
 
       return `
-        <div class="ticket-item-glass">
+        <div class="ticket-item-glass" style="${isCancelled ? 'opacity: 0.65; border-color: #e5e7eb;' : ''}">
           <div class="ticket-item-info">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="ticket-item-name">${escapeHtml(t.buyer_name)}</span>
+              <span class="ticket-item-name" style="${isCancelled ? 'text-decoration: line-through; color: #6b7280;' : ''}">${escapeHtml(t.buyer_name)}</span>
               <span class="ticket-item-badge ${badgeClass}">${badgeText}</span>
             </div>
             <div class="ticket-item-meta">
@@ -702,11 +713,11 @@ async function loadTickets() {
           </div>
 
           <!-- Botões Rápidos de Ação: Ver QR e Ajustar -->
-          <div style="display: flex; gap: 6px; flex-shrink: 0;">
-            <button type="button" class="btn-glass btn-primary-glass" style="width: auto; min-height: 42px; padding: 0 12px; font-size: 0.8rem;" onclick="viewTicketQr('${t.code}')">
-              👁️ QR
+          <div class="ticket-item-actions">
+            <button type="button" class="btn-glass btn-primary-glass" style="font-size: 0.85rem;" onclick="viewTicketQr('${t.code}')">
+              👁️ Ver QR
             </button>
-            <button type="button" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 42px; padding: 0 12px; font-size: 0.8rem;" onclick="openEditTab('${t.code}')">
+            <button type="button" class="btn-glass btn-secondary-glass" style="font-size: 0.85rem;" onclick="openEditTab('${t.code}')">
               ✏️ Ajustar
             </button>
           </div>
@@ -822,6 +833,20 @@ function populateEditForm(ticket) {
   const badgeStatus = document.getElementById('edit-badge-status');
   badgeStatus.textContent = (ticket.status || 'ativo').toUpperCase();
   badgeStatus.className = `ticket-item-badge badge-${ticket.status || 'ativo'}`;
+
+  // Desabilitar/Habilitar botão de salvar dependendo se está cancelado
+  const saveBtn = document.getElementById('btn-save-edit');
+  if (saveBtn) {
+    if (ticket.status === 'cancelado') {
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = '0.5';
+      saveBtn.textContent = '⛔ VALE CANCELADO';
+    } else {
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+      saveBtn.textContent = '💾 SALVAR ALTERAÇÕES DO VALE';
+    }
+  }
 
   // Campos básicos
   document.getElementById('edit-buyer-name').value = ticket.buyer_name || '';
@@ -1057,13 +1082,43 @@ function setupEditForm() {
     });
   }
 
-  // Botão Cancelar Vale
+  // Botão Cancelar Vale - Modal Customizado Glass (100% responsivo)
   const btnCancel = document.getElementById('btn-cancel-ticket-action');
+  const cancelModal = document.getElementById('cancel-confirm-modal');
+  const btnCloseCancel = document.getElementById('btn-close-cancel-modal');
+  const btnAbortCancel = document.getElementById('btn-abort-delete-action');
+  const btnConfirmDelete = document.getElementById('btn-confirm-delete-action');
+
+  function closeCancelModal() {
+    if (cancelModal) cancelModal.classList.remove('active');
+  }
+
+  if (btnCloseCancel) btnCloseCancel.addEventListener('click', closeCancelModal);
+  if (btnAbortCancel) btnAbortCancel.addEventListener('click', closeCancelModal);
+  if (cancelModal) {
+    cancelModal.addEventListener('click', (e) => {
+      if (e.target === cancelModal) closeCancelModal();
+    });
+  }
+
   if (btnCancel) {
-    btnCancel.addEventListener('click', async () => {
+    btnCancel.addEventListener('click', () => {
+      triggerHaptic('light');
+      if (!currentEditTicket) {
+        alert('Nenhum vale selecionado para cancelamento.');
+        return;
+      }
+      document.getElementById('cancel-modal-code').textContent = currentEditTicket.code;
+      document.getElementById('cancel-modal-name').textContent = currentEditTicket.buyer_name;
+      if (cancelModal) cancelModal.classList.add('active');
+    });
+  }
+
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', async () => {
       if (!currentEditTicket) return;
-      const ok = confirm(`Tem certeza que deseja cancelar o vale ${currentEditTicket.code} de ${currentEditTicket.buyer_name}?`);
-      if (!ok) return;
+      btnConfirmDelete.disabled = true;
+      btnConfirmDelete.textContent = '⏳ Cancelando...';
 
       try {
         const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(currentEditTicket.code)}`, {
@@ -1072,17 +1127,39 @@ function setupEditForm() {
         const data = await res.json();
         if (res.ok) {
           playSuccessSound();
-          alert('🗑️ Vale cancelado com sucesso.');
-          document.getElementById('edit-badge-status').textContent = 'CANCELADO';
-          document.getElementById('edit-badge-status').className = 'ticket-item-badge';
-          document.getElementById('edit-badge-status').style.background = '#6b7280';
+          closeCancelModal();
+
+          // Atualizar estado em memória
+          currentEditTicket.status = 'cancelado';
+
+          // Atualizar badge do header
+          const badgeEl = document.getElementById('edit-badge-status');
+          if (badgeEl) {
+            badgeEl.textContent = 'CANCELADO';
+            badgeEl.className = 'ticket-item-badge badge-cancelado';
+          }
+
+          // Desabilitar botão de salvar para evitar reativação acidental
+          const saveBtn = document.getElementById('btn-save-edit');
+          if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            saveBtn.textContent = '⛔ VALE CANCELADO';
+          }
+
           loadStats();
           loadTickets();
+          alert('🗑️ Vale cancelado com sucesso!');
         } else {
+          playErrorSound();
           alert(`Erro: ${data.error || 'Não foi possível cancelar o vale'}`);
         }
       } catch (err) {
+        playErrorSound();
         alert('Erro de comunicação ao cancelar o vale.');
+      } finally {
+        btnConfirmDelete.disabled = false;
+        btnConfirmDelete.textContent = '🗑️ SIM, CANCELAR VALE';
       }
     });
   }

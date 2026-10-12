@@ -661,6 +661,8 @@ body::after {
 
 .badge-entregue { background: #dcfce7; color: #166534; }
 .badge-ativo { background: #ffedd5; color: #9a3412; }
+.badge-parcial { background: #fef3c7; color: #b45309; }
+.badge-cancelado { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
 /* DOCK DE NAVEGAÇÃO INFERIOR ESTILO IPHONE */
 .ios-floating-dock {
@@ -772,4 +774,94 @@ body::after {
 .modal-body-glass {
   padding: 22px 20px;
   text-align: center;
+}
+
+/* RESPONSIVIDADE PARA SMARTPHONES (IPHONE / ANDROID) */
+@media (max-width: 480px) {
+  .main-container {
+    padding: 0 10px;
+    margin: 10px auto;
+  }
+
+  .glass-card {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .glass-card-title {
+    font-size: 1.05rem;
+  }
+
+  .stepper-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 1.4rem;
+  }
+
+  .stepper-value {
+    font-size: 1.5rem;
+  }
+
+  .btn-glass {
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .btn-large-hero {
+    min-height: 56px;
+    font-size: 1rem;
+  }
+
+  .payment-cash-card {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-calendar-trigger {
+    width: 100%;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  .ios-floating-dock {
+    width: calc(100% - 16px);
+    padding: 6px 8px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .dock-item {
+    padding: 6px 2px;
+  }
+
+  .dock-item-icon {
+    font-size: 1.25rem;
+  }
+
+  .dock-item-label {
+    font-size: 0.65rem;
+  }
+
+  .modal-box-glass {
+    border-radius: var(--radius-md);
+    margin: 10px;
+  }
+
+  .ticket-item-glass {
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ticket-item-actions {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .ticket-item-actions .btn-glass {
+    flex: 1;
+    min-height: 44px;
+  }
 }
