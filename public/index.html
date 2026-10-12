@@ -33,15 +33,124 @@
           <span id="app-event-info">Painel do Colaborador • Paróquia</span>
         </div>
       </div>
-      <div class="status-pill">
-        <span class="status-dot"></span>
-        <span>ONLINE</span>
+      <div class="header-right-actions">
+        <button type="button" id="btn-switch-profile" class="profile-header-pill" title="Toque para alternar o modo de operação">
+          <span id="profile-pill-icon">⚡</span>
+          <span id="profile-pill-text">Operacional</span>
+          <span class="profile-pill-switch">⇄</span>
+        </button>
+        <div class="status-pill status-pill-mini" title="Servidor Conectado">
+          <span class="status-dot"></span>
+        </div>
       </div>
     </div>
   </header>
 
+  <!-- ==================== TELA INICIAL: SELETOR DE PERFIL (LANDING) ==================== -->
+  <section id="profile-selector-screen" class="profile-selector-screen">
+    <div class="profile-hero">
+      <div class="profile-hero-icon-glow">
+        <span class="profile-hero-icon">🍲</span>
+      </div>
+      <h2 class="profile-hero-title">Sistema Vale Feijoada</h2>
+      <p class="profile-hero-subtitle">Selecione seu perfil de atuação para uma experiência rápida, limpa e sem distrações:</p>
+    </div>
+
+    <div class="profile-cards-grid">
+      <!-- CARD 1: PERFIL OPERACIONAL -->
+      <div class="profile-card profile-card-operacional" id="card-select-operacional">
+        <div class="profile-card-badge">⚡ Recomendado para Atendimento</div>
+        <div class="profile-card-header">
+          <div class="profile-card-avatar avatar-operacional">⚡</div>
+          <div>
+            <h3 class="profile-card-title">Operacional</h3>
+            <p class="profile-card-desc">Entrega, Leitura de QR & Cozinha</p>
+          </div>
+        </div>
+
+        <div class="profile-features-box">
+          <div class="profile-feature-item">
+            <span class="feat-icon">📷</span>
+            <div class="feat-text">
+              <strong>Escanear & Entregar:</strong> Leitura instantânea por foto ou vídeo com bipe sonoro e vibração tátil.
+            </div>
+          </div>
+          <div class="profile-feature-item">
+            <span class="feat-icon">➕</span>
+            <div class="feat-text">
+              <strong>Venda Rápida na Porta:</strong> Emissão ágil de novos vales com QR Code em dinheiro (¥1.000).
+            </div>
+          </div>
+          <div class="profile-feature-item">
+            <span class="feat-icon">📊</span>
+            <div class="feat-text">
+              <strong>Ritmo da Cozinha:</strong> Contagem direta de quantas faltam entregar e total concluído.
+            </div>
+          </div>
+          <div class="profile-feature-item shield-item">
+            <span class="feat-icon">🛡️</span>
+            <div class="feat-text">
+              <em>Interface simplificada: menus e botões complexos ficam ocultos para evitar erros.</em>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-glass btn-hero-operacional profile-select-btn" id="btn-choose-operacional">
+          ENTRAR NO MODO OPERACIONAL ⚡
+        </button>
+      </div>
+
+      <!-- CARD 2: PERFIL ADMINISTRATIVO -->
+      <div class="profile-card profile-card-admin" id="card-select-admin">
+        <div class="profile-card-badge">👑 Coordenação, Auditoria & Caixa</div>
+        <div class="profile-card-header">
+          <div class="profile-card-avatar avatar-admin">👑</div>
+          <div>
+            <h3 class="profile-card-title">Administrativo</h3>
+            <p class="profile-card-desc">Gestão Geral, Ajustes & Finanças</p>
+          </div>
+        </div>
+
+        <div class="profile-features-box">
+          <div class="profile-feature-item">
+            <span class="feat-icon">🎫</span>
+            <div class="feat-text">
+              <strong>Gestão Total de Vales:</strong> Busca por nome/código, reenvio WhatsApp e exportação Excel.
+            </div>
+          </div>
+          <div class="profile-feature-item">
+            <span class="feat-icon">✏️</span>
+            <div class="feat-text">
+              <strong>Ajustes & Correções:</strong> Alteração de comprador, entradas/saídas, data de pagamento e cancelamento.
+            </div>
+          </div>
+          <div class="profile-feature-item">
+            <span class="feat-icon">📈</span>
+            <div class="feat-text">
+              <strong>Dashboard Financeiro:</strong> Faturamento global em ¥, métricas completas de vendas e caixas.
+            </div>
+          </div>
+          <div class="profile-feature-item">
+            <span class="feat-icon">🗑️</span>
+            <div class="feat-text">
+              <strong>Manutenção do Banco:</strong> Limpeza e purga segura de vales já cancelados ou finalizados.
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-glass btn-hero-admin profile-select-btn" id="btn-choose-admin">
+          ENTRAR NO MODO ADMINISTRATIVO 👑
+        </button>
+      </div>
+    </div>
+
+    <div class="profile-footer-tip">
+      <span>💡 Dica: Você pode alternar o perfil a qualquer momento tocando no botão no topo direito.</span>
+    </div>
+  </section>
+
   <!-- Conteúdo Principal -->
-  <main class="main-container">
+  <main class="main-container" id="main-content">
 
     <!-- ==================== ABA 1: ADICIONAR COMPRA (NOVA VENDA) ==================== -->
     <section id="tab-sales" class="tab-pane active">
@@ -245,10 +354,18 @@
           <span style="font-size: 0.75rem; color: #9a3412; font-weight: 700;">Ritmo da Cozinha</span>
         </div>
 
-        <div class="stat-box-glass">
+        <!-- Card Financeiro (Apenas Administrativo) -->
+        <div class="stat-box-glass admin-only">
           <span class="stat-label-glass">Faturamento</span>
           <span class="stat-num-glass" id="dash-revenue" style="font-size: 1.6rem;">¥ 0</span>
           <span style="font-size: 0.75rem; color: var(--text-muted);">Total Arrecadado</span>
+        </div>
+
+        <!-- Card Operacional: Status do Atendimento -->
+        <div class="stat-box-glass operational-only">
+          <span class="stat-label-glass">Status Cozinha</span>
+          <span class="stat-num-glass" style="font-size: 1.45rem; color: #16a34a;">🟢 Pronta</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Entregas liberadas</span>
         </div>
       </div>
 
@@ -484,24 +601,24 @@
   </main>
 
   <!-- ==================== DOCK DE NAVEGAÇÃO INFERIOR ESTILO IPHONE ==================== -->
-  <nav class="ios-floating-dock">
-    <button type="button" class="dock-item active" data-tab="tab-sales">
-      <span class="dock-item-icon">➕</span>
-      <span class="dock-item-label">Compra</span>
-    </button>
-    <button type="button" class="dock-item" data-tab="tab-scanner">
+  <nav class="ios-floating-dock" id="main-dock">
+    <button type="button" class="dock-item" data-tab="tab-scanner" data-profiles="operacional,admin">
       <span class="dock-item-icon">📷</span>
       <span class="dock-item-label">Escanear</span>
     </button>
-    <button type="button" class="dock-item" data-tab="tab-edit">
-      <span class="dock-item-icon">✏️</span>
-      <span class="dock-item-label">Ajustes</span>
+    <button type="button" class="dock-item" data-tab="tab-sales" data-profiles="operacional,admin">
+      <span class="dock-item-icon">➕</span>
+      <span class="dock-item-label">Venda</span>
     </button>
-    <button type="button" class="dock-item" data-tab="tab-dashboard">
+    <button type="button" class="dock-item" data-tab="tab-dashboard" data-profiles="operacional,admin">
       <span class="dock-item-icon">📊</span>
       <span class="dock-item-label">Cozinha</span>
     </button>
-    <button type="button" class="dock-item" data-tab="tab-list">
+    <button type="button" class="dock-item" data-tab="tab-edit" data-profiles="admin">
+      <span class="dock-item-icon">✏️</span>
+      <span class="dock-item-label">Ajustes</span>
+    </button>
+    <button type="button" class="dock-item" data-tab="tab-list" data-profiles="admin">
       <span class="dock-item-icon">🎫</span>
       <span class="dock-item-label">Vales</span>
     </button>

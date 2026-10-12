@@ -91,8 +91,13 @@ function formatMoney(amount) {
   return `${sym} ${val.toLocaleString('ja-JP')}`;
 }
 
+// Gerenciamento de Perfis (Operacional vs Administrativo)
+const STORAGE_PROFILE_KEY = 'feijoada_app_profile';
+let currentProfile = null; // 'operacional' | 'admin' | null
+
 // Inicialização ao carregar
 document.addEventListener('DOMContentLoaded', () => {
+  setupProfileManagement();
   setupDockNavigation();
   loadConfig();
   loadStats();
@@ -105,6 +110,103 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSSE();
 });
 
+// ==================== GERENCIAMENTO DE PERFIS ====================
+function setupProfileManagement() {
+  const btnChooseOperacional = document.getElementById('btn-choose-operacional');
+  const btnChooseAdmin = document.getElementById('btn-choose-admin');
+  const btnSwitchProfile = document.getElementById('btn-switch-profile');
+
+  if (btnChooseOperacional) {
+    btnChooseOperacional.addEventListener('click', () => {
+      triggerHaptic('light');
+      selectProfile('operacional');
+    });
+  }
+
+  if (btnChooseAdmin) {
+    btnChooseAdmin.addEventListener('click', () => {
+      triggerHaptic('light');
+      selectProfile('admin');
+    });
+  }
+
+  if (btnSwitchProfile) {
+    btnSwitchProfile.addEventListener('click', () => {
+      triggerHaptic('light');
+      openProfileSelector();
+    });
+  }
+
+  // Verifica se há perfil persistido no aparelho
+  let savedProfile = null;
+  try {
+    savedProfile = localStorage.getItem(STORAGE_PROFILE_KEY);
+  } catch (e) {
+    console.warn('Erro ao ler localStorage:', e);
+  }
+
+  if (savedProfile === 'operacional' || savedProfile === 'admin') {
+    applyProfile(savedProfile, false);
+  } else {
+    openProfileSelector();
+  }
+}
+
+function selectProfile(profile) {
+  try {
+    localStorage.setItem(STORAGE_PROFILE_KEY, profile);
+  } catch (e) {
+    console.warn('Erro ao salvar profile no storage', e);
+  }
+  applyProfile(profile, true);
+}
+
+function applyProfile(profile, shouldSwitchTab = true) {
+  currentProfile = profile;
+  document.body.classList.remove('profile-selector-open', 'mode-operacional', 'mode-admin');
+
+  const pillText = document.getElementById('profile-pill-text');
+  const pillIcon = document.getElementById('profile-pill-icon');
+  const pillBtn = document.getElementById('btn-switch-profile');
+
+  if (profile === 'operacional') {
+    document.body.classList.add('mode-operacional');
+    if (pillText) pillText.textContent = 'Operacional';
+    if (pillIcon) pillIcon.textContent = '⚡';
+    if (pillBtn) {
+      pillBtn.classList.remove('pill-admin');
+      pillBtn.title = 'Perfil Ativo: Operacional (Toque para alternar)';
+    }
+
+    // No modo operacional, abrir diretamente a aba de Escanear para agilidade do balcão
+    if (shouldSwitchTab) {
+      switchTab('tab-scanner');
+    } else {
+      const activeTab = document.querySelector('.tab-pane.active');
+      if (!activeTab || activeTab.id === 'tab-edit' || activeTab.id === 'tab-list') {
+        switchTab('tab-scanner');
+      }
+    }
+  } else if (profile === 'admin') {
+    document.body.classList.add('mode-admin');
+    if (pillText) pillText.textContent = 'Administrativo';
+    if (pillIcon) pillIcon.textContent = '👑';
+    if (pillBtn) {
+      pillBtn.classList.add('pill-admin');
+      pillBtn.title = 'Perfil Ativo: Administrativo (Toque para alternar)';
+    }
+
+    if (shouldSwitchTab) {
+      switchTab('tab-list');
+    }
+  }
+}
+
+function openProfileSelector() {
+  document.body.classList.add('profile-selector-open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // ==================== DOCK INFERIOR ESTILO IPHONE ====================
 function setupDockNavigation() {
   const dockItems = document.querySelectorAll('.dock-item');
@@ -113,6 +215,12 @@ function setupDockNavigation() {
   dockItems.forEach(item => {
     item.addEventListener('click', () => {
       const targetId = item.getAttribute('data-tab');
+      const profiles = (item.getAttribute('data-profiles') || '').split(',');
+
+      // Se for restrito a admin e estiver no modo operacional, ignora
+      if (currentProfile === 'operacional' && profiles.length && !profiles.includes('operacional')) {
+        return;
+      }
 
       dockItems.forEach(d => d.classList.remove('active'));
       tabPanes.forEach(p => p.classList.remove('active'));
@@ -132,7 +240,26 @@ function setupDockNavigation() {
 
 function switchTab(tabId) {
   const dockBtn = document.querySelector(`.dock-item[data-tab="${tabId}"]`);
-  if (dockBtn) dockBtn.click();
+  if (dockBtn && dockBtn.offsetParent !== null) {
+    dockBtn.click();
+  } else {
+    // Fallback: seleciona diretamente a pane e atualiza o dock se existir
+    const dockItems = document.querySelectorAll('.dock-item');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    dockItems.forEach(d => {
+      if (d.getAttribute('data-tab') === tabId) d.classList.add('active');
+      else d.classList.remove('active');
+    });
+
+    tabPanes.forEach(p => {
+      if (p.id === tabId) p.classList.add('active');
+      else p.classList.remove('active');
+    });
+
+    if (tabId === 'tab-dashboard') loadStats();
+    else if (tabId === 'tab-list') loadTickets();
+  }
 }
 
 // Carregar Configurações
