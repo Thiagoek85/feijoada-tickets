@@ -168,7 +168,7 @@
 
         <form id="form-new-ticket" class="form-compact-screen">
           
-          <!-- Linha 1: Nome do Comprador + Celular/WhatsApp (2 Colunas) -->
+          <!-- Linha 1: Nome do Comprador + Celular/WhatsApp (2 Colunas proporcionais) -->
           <div class="sales-row-2col">
             <div class="form-group-glass">
               <label for="buyer_name">👤 Nome / Família *</label>
@@ -180,11 +180,15 @@
             </div>
           </div>
 
-          <!-- Linha 2: Quantidade (Stepper + Chips) + Pagamento Dinheiro lado a lado -->
-          <div class="sales-row-2col sales-row-mid">
-            <!-- Coluna Esquerda: Stepper e Chips de Porção -->
-            <div class="form-group-glass">
-              <label>🍲 Quantidade de Feijoadas</label>
+          <!-- Linha 2: Quantidade (Stepper + Chips) -->
+          <div class="form-group-glass" style="margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label style="margin: 0;">🍲 Quantidade de Feijoadas</label>
+              <span id="sales-paydate-label" style="font-size: 0.72rem; color: #15803d; font-weight: 700;">
+                🟢 <span id="sales-paystatus-text">Pago</span> • 📅 <span id="sales-paydate-text">Hoje</span>
+              </span>
+            </div>
+            <div class="sales-stepper-row">
               <div class="stepper-container">
                 <button type="button" class="stepper-btn" id="btn-qty-minus">−</button>
                 <div class="stepper-value-box">
@@ -195,43 +199,33 @@
               </div>
               <input type="hidden" id="ticket_quantity" value="1">
 
-              <!-- Atalhos de Quantidade Rápida -->
+              <!-- Atalhos Rápidos 1 a 4 Porções -->
               <div class="qty-chips">
-                <div class="qty-chip active" data-qty="1">1 Porção</div>
-                <div class="qty-chip" data-qty="2">2 Porções</div>
-                <div class="qty-chip" data-qty="3">3 Porções</div>
-                <div class="qty-chip" data-qty="4">4 Porções</div>
+                <div class="qty-chip active" data-qty="1">1x</div>
+                <div class="qty-chip" data-qty="2">2x</div>
+                <div class="qty-chip" data-qty="3">3x</div>
+                <div class="qty-chip" data-qty="4">4x</div>
               </div>
             </div>
+          </div>
 
-            <!-- Coluna Direita: Pagamento Padrão Dinheiro + Observação Cozinha -->
+          <!-- Linha 3: Pagamento em Dinheiro Compacto + Obs Cozinha lado a lado -->
+          <div class="sales-row-2col" style="align-items: center;">
+            <div class="payment-cash-card-mini">
+              <div class="payment-cash-info-mini">
+                <span style="font-size: 1.15rem;">💵</span>
+                <span style="font-size: 0.78rem; font-weight: 800; color: #1c1917;">Dinheiro</span>
+              </div>
+              <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger-mini">
+                📅 Data
+              </button>
+              <input type="hidden" id="payment_method" value="dinheiro">
+              <input type="hidden" id="payment_status" value="pago">
+              <input type="hidden" id="payment_date" value="">
+            </div>
+
             <div>
-              <div class="form-group-glass" style="margin-bottom: 8px;">
-                <label>💵 Pagamento (Padrão: Dinheiro)</label>
-                <div class="payment-cash-card">
-                  <div class="payment-cash-info">
-                    <span style="font-size: 1.4rem;">💵</span>
-                    <div>
-                      <div style="font-weight: 800; font-size: 0.88rem; color: #1c1917;">Dinheiro</div>
-                      <div id="sales-paydate-label" style="font-size: 0.75rem; color: #15803d; font-weight: 700;">
-                        🟢 <span id="sales-paystatus-text">Pago</span> • 📅 <span id="sales-paydate-text">Hoje</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button type="button" id="btn-open-calendar-sales" class="btn-calendar-trigger">
-                    📅 Data
-                  </button>
-                </div>
-                <input type="hidden" id="payment_method" value="dinheiro">
-                <input type="hidden" id="payment_status" value="pago">
-                <input type="hidden" id="payment_date" value="">
-              </div>
-
-              <!-- Observações -->
-              <div class="form-group-glass">
-                <label for="ticket_notes">📝 Obs Cozinha (Opcional)</label>
-                <input type="text" id="ticket_notes" class="input-glass" placeholder="Ex: Viagem, sem couve">
-              </div>
+              <input type="text" id="ticket_notes" class="input-glass" placeholder="📝 Obs Cozinha (Opcional)">
             </div>
           </div>
 

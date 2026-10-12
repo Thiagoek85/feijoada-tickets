@@ -1456,46 +1456,79 @@ body.mode-admin .operational-only {
   border-radius: 12px;
 }
 
+.sales-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 #tab-sales .stepper-container {
   padding: 4px 6px;
   gap: 8px;
+  flex: 1.1;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
 }
 
 #tab-sales .stepper-btn {
-  width: 40px;
-  height: 40px;
-  font-size: 1.3rem;
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
   border-radius: 10px;
 }
 
 #tab-sales .stepper-value {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 
 #tab-sales .stepper-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
 }
 
 #tab-sales .qty-chips {
-  gap: 6px;
-  margin-top: 6px;
+  display: flex;
+  gap: 5px;
+  flex: 0.9;
+  margin-top: 0;
 }
 
 #tab-sales .qty-chip {
-  padding: 6px 2px;
-  font-size: 0.78rem;
+  flex: 1;
+  padding: 8px 2px;
+  font-size: 0.82rem;
+  font-weight: 800;
   border-radius: 10px;
+  text-align: center;
 }
 
-#tab-sales .payment-cash-card {
-  padding: 8px 12px;
+.payment-cash-card-mini {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid #bbf7d0;
   border-radius: 12px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 42px;
 }
 
-#tab-sales .btn-calendar-trigger {
-  padding: 6px 10px;
-  font-size: 0.78rem;
-  border-radius: 10px;
+.payment-cash-info-mini {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-calendar-trigger-mini {
+  background: white;
+  border: 1.5px solid #fed7aa;
+  color: #c2410c;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 #tab-sales .price-banner-glass {
@@ -1623,16 +1656,8 @@ body.mode-operacional #tab-dashboard .stat-label-glass {
   .status-pill-mini {
     display: none; /* Oculta bolinha redundante no mobile muito estreito */
   }
-  #tab-sales .sales-row-mid {
-    grid-template-columns: 1.15fr 0.85fr;
+  #tab-sales .sales-row-2col {
     gap: 8px;
-  }
-  #tab-sales .payment-cash-card {
-    padding: 6px 8px;
-  }
-  #tab-sales .btn-calendar-trigger {
-    padding: 5px 8px;
-    font-size: 0.72rem;
   }
 }
 
