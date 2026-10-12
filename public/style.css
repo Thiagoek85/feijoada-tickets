@@ -30,7 +30,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -1576,45 +1576,87 @@ body.mode-admin .operational-only {
   border-radius: 4px;
 }
 
-/* Otimização especial para modo operacional na Cozinha: Grade de 3 colunas compacta */
+/* Otimização especial para modo operacional na Cozinha: Grade de 4 colunas compacta */
 body.mode-operacional #tab-dashboard .stats-grid-glass {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
 body.mode-operacional #tab-dashboard .stat-num-glass {
-  font-size: 1.45rem;
+  font-size: 1.35rem;
 }
 
 body.mode-operacional #tab-dashboard .stat-box-glass {
-  padding: 8px 10px;
+  padding: 8px 6px;
+  text-align: center;
+  align-items: center;
 }
 
-/* Redução sutil do padding geral em telas mobile para garantir zero scroll */
-@media (max-height: 850px) {
-  body {
-    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-  }
+body.mode-operacional #tab-dashboard .stat-label-glass {
+  font-size: 0.65rem;
+}
+
+/* Redução e refinamento geral em telas mobile para garantir zero scroll e distribuição perfeita */
+@media (max-width: 480px) {
   .app-header {
-    padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px 16px;
-  }
-  .app-icon-badge {
-    width: 36px;
-    height: 36px;
-    font-size: 1.25rem;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px 12px;
   }
   .header-title-box h1 {
-    font-size: 1.02rem;
+    font-size: 0.95rem;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .header-title-box span {
+    display: none; /* Oculta subtítulo secundário no mobile estreito para não espremer os botões */
+  }
+  .operator-header-pill {
+    max-width: 105px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+  .profile-header-pill {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+  .status-pill-mini {
+    display: none; /* Oculta bolinha redundante no mobile muito estreito */
+  }
+  #tab-sales .sales-row-mid {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 8px;
+  }
+  #tab-sales .payment-cash-card {
+    padding: 6px 8px;
+  }
+  #tab-sales .btn-calendar-trigger {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-height: 850px) {
+  body {
+    padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+  }
+  .app-header {
+    padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px 12px;
+  }
+  .app-icon-badge {
+    width: 34px;
+    height: 34px;
+    font-size: 1.15rem;
   }
   .main-container {
-    margin: 8px auto;
-    padding: 0 12px;
+    margin: 6px auto;
+    padding: 0 10px;
   }
   .ios-floating-dock {
-    padding: 6px 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 5px 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
   .dock-item {
-    padding: 6px 2px;
+    padding: 5px 2px;
   }
 }
