@@ -35,10 +35,11 @@
         </div>
       </div>
       <div class="header-right-actions">
-        <a href="tutorial.html" class="profile-header-pill" style="color: #475569; border-color: #cbd5e1; text-decoration: none;" title="Abrir Tutorial Ilustrado do Aplicativo">
-          <span>📖</span>
-          <span style="font-size: 0.78rem;">Tutorial</span>
-        </a>
+        <button type="button" id="btn-edit-operator" class="operator-header-pill" title="Toque para alterar seu nome / ponto">
+          <span>👤</span>
+          <span id="operator-pill-name">Meu Aparelho</span>
+          <span style="font-size: 0.65rem; opacity: 0.7;">✏️</span>
+        </button>
         <button type="button" id="btn-switch-profile" class="profile-header-pill" title="Toque para alternar o modo de operação">
           <span id="profile-pill-icon">⚡</span>
           <span id="profile-pill-text">Operacional</span>
@@ -149,11 +150,8 @@
       </div>
     </div>
 
-    <div class="profile-footer-tip" style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+    <div class="profile-footer-tip">
       <span>💡 Dica: Você pode alternar o perfil a qualquer momento tocando no botão no topo direito.</span>
-      <a href="tutorial.html" style="color: #ea580c; font-weight: 800; text-decoration: underline; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
-        📖 Ver Tutorial Ilustrado & Como Instalar no iPhone e Android →
-      </a>
     </div>
   </section>
 
@@ -456,18 +454,25 @@
           <span style="font-size: 0.75rem; color: #9a3412; font-weight: 700;">Ritmo da Cozinha</span>
         </div>
 
-        <!-- Card Financeiro Total (Apenas Administrativo) -->
+        <!-- Card Financeiro Total Pago (Apenas Administrativo) -->
         <div class="stat-box-glass admin-only">
-          <span class="stat-label-glass">Faturamento Total</span>
-          <span class="stat-num-glass" id="dash-revenue" style="font-size: 1.6rem;">¥ 0</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Total Arrecadado</span>
+          <span class="stat-label-glass">Total Pago</span>
+          <span class="stat-num-glass" id="dash-revenue" style="font-size: 1.6rem; color: #15803d;">¥ 0</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Caixa Confirmado</span>
         </div>
 
-        <!-- Card Fluxo de Caixa Balcão (Apenas Administrativo) -->
-        <div class="stat-box-glass admin-only highlight-balcao" style="background: linear-gradient(135deg, rgba(236, 253, 245, 0.9) 0%, rgba(209, 250, 229, 0.9) 100%); border-color: #6ee7b7;">
-          <span class="stat-label-glass" style="color: #047857;">🏪 Caixa Balcão</span>
-          <span class="stat-num-glass" id="dash-balcao-revenue" style="font-size: 1.6rem; color: #047857;">¥ 0</span>
-          <span style="font-size: 0.75rem; color: #065f46; font-weight: 700;" id="dash-balcao-count">0 porções no dinheiro</span>
+        <!-- Card Dinheiro Físico em Espécie (Apenas Administrativo) -->
+        <div class="stat-box-glass admin-only highlight-balcao" style="background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.95) 100%); border-color: #6ee7b7;">
+          <span class="stat-label-glass" style="color: #047857;">💵 Dinheiro em Caixa</span>
+          <span class="stat-num-glass" id="dash-cash-revenue" style="font-size: 1.6rem; color: #047857;">¥ 0</span>
+          <span style="font-size: 0.75rem; color: #065f46; font-weight: 700;" id="dash-balcao-count">Dinheiro físico total</span>
+        </div>
+
+        <!-- Card Pendente a Receber (Apenas Administrativo) -->
+        <div class="stat-box-glass admin-only" style="background: rgba(254, 252, 232, 0.9); border-color: #fde047;">
+          <span class="stat-label-glass" style="color: #854d0e;">🟡 Pendente a Receber</span>
+          <span class="stat-num-glass" id="dash-pending-revenue" style="font-size: 1.6rem; color: #a16207;">¥ 0</span>
+          <span style="font-size: 0.75rem; color: #854d0e; font-weight: 700;">Não pago ainda</span>
         </div>
 
         <!-- Card Operacional: Status do Atendimento -->
@@ -475,6 +480,27 @@
           <span class="stat-label-glass">Status Cozinha</span>
           <span class="stat-num-glass" style="font-size: 1.45rem; color: #16a34a;">🟢 Pronta</span>
           <span style="font-size: 0.75rem; color: var(--text-muted);">Entregas liberadas</span>
+      </div>
+
+      <!-- Banner de Fechamento de Caixa Unificado (Apenas Administrativo) -->
+      <div class="glass-card admin-only" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac; padding: 18px 20px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 1.15rem; font-weight: 900; color: #166534; display: flex; align-items: center; gap: 8px;">
+              <span>📋</span> Fechamento de Caixa Unificado
+            </div>
+            <div style="font-size: 0.8rem; color: #15803d; margin-top: 2px;">
+              Unifica vendas de todos os smartphones e faz o acerto de contas individual por colaborador.
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-open-cashflow-modal" class="btn-glass btn-large-hero" style="background: #16a34a; color: white; width: auto; min-height: 40px; padding: 8px 18px; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
+              📊 Abrir Relatório do Caixa
+            </button>
+            <a href="api/export/cashflow-csv" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 40px; padding: 8px 14px; font-size: 0.85rem; text-decoration: none;">
+              📥 Excel do Caixa
+            </a>
+          </div>
         </div>
       </div>
 
@@ -982,6 +1008,139 @@
         <button type="button" id="btn-abort-purge-modal" class="btn-glass btn-secondary-glass">
           Fechar
         </button>
+      </div>
+    </div>
+  <!-- ==================== MODAL DE IDENTIFICAÇÃO DO OPERADOR / SMARTPHONE ==================== -->
+  <div id="operator-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 360px;">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">👤 Identificação do Aparelho</h3>
+        <button type="button" id="btn-close-operator-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="padding: 18px 20px;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Identifique quem está usando este smartphone para que suas vendas e o dinheiro do seu caixa fiquem separados corretamente:
+        </p>
+        <div class="form-group-glass" style="margin-bottom: 16px;">
+          <label for="input-operator-name" style="font-size: 0.82rem; font-weight: 700; color: #1c1917;">Seu Nome / Ponto:</label>
+          <input type="text" id="input-operator-name" class="input-glass" placeholder="Ex: Thiago, Maria (Caixa 1), Balcão 2" required autocomplete="off">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" id="btn-save-operator-name" class="btn-glass btn-success-glass btn-large-hero">
+            💾 Salvar Identificação
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE PIN ADMINISTRATIVO ==================== -->
+  <div id="pin-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 340px;">
+      <div class="modal-header-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">🔒 PIN do Administrador</h3>
+        <button type="button" id="btn-close-pin-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="padding: 20px; text-align: center;">
+        <div style="font-size: 2.2rem; margin-bottom: 8px;">🔐</div>
+        <p style="font-size: 0.88rem; color: #44403c; font-weight: 600; margin-bottom: 14px;">
+          Acesso restrito à coordenação. Digite o PIN de 4 dígitos para continuar:
+        </p>
+        <div class="form-group-glass" style="margin-bottom: 14px;">
+          <input type="password" id="input-admin-pin" class="input-glass" placeholder="••••" maxlength="6" style="text-align: center; font-size: 1.6rem; letter-spacing: 8px; font-weight: 900;" autocomplete="off" inputmode="numeric">
+        </div>
+        <div id="pin-error-msg" style="display: none; color: #dc2626; font-size: 0.8rem; font-weight: 700; margin-bottom: 12px;">
+          ❌ PIN incorreto. Tente novamente.
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" id="btn-confirm-pin" class="btn-glass btn-primary-glass btn-large-hero">
+            🔓 Acessar Administração
+          </button>
+          <button type="button" id="btn-cancel-pin" class="btn-glass btn-secondary-glass">
+            Voltar ao Operacional
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE FECHAMENTO DE CAIXA UNIFICADO ==================== -->
+  <div id="cashflow-modal" class="modal-overlay-glass">
+    <div class="modal-box-glass" style="max-width: 620px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header-glass">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.6rem;">📋</span>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 900; color: #1c1917; margin: 0;">Fechamento de Caixa Unificado</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Consolidação de todos os smartphones</span>
+          </div>
+        </div>
+        <button type="button" id="btn-close-cashflow-modal" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body-glass" style="padding: 16px 20px;">
+        <!-- Cards de Resumo Geral -->
+        <div class="stats-grid-glass" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
+          <div class="stat-box-glass" style="background: rgba(236, 253, 245, 0.85); border-color: #a7f3d0;">
+            <span class="stat-label-glass" style="color: #065f46;">💵 Total Dinheiro Vivo</span>
+            <span class="stat-num-glass" id="cf-total-cash" style="color: #047857; font-size: 1.55rem;">¥ 0</span>
+            <span style="font-size: 0.72rem; color: #047857; font-weight: 700;">Em mãos nos caixas</span>
+          </div>
+          <div class="stat-box-glass" style="background: rgba(239, 246, 255, 0.85); border-color: #bfdbfe;">
+            <span class="stat-label-glass" style="color: #1e40af;">📲 Total Digital</span>
+            <span class="stat-num-glass" id="cf-total-digital" style="color: #2563eb; font-size: 1.55rem;">¥ 0</span>
+            <span style="font-size: 0.72rem; color: #1e40af; font-weight: 700;">PayPay / PIX / Transferência</span>
+          </div>
+          <div class="stat-box-glass">
+            <span class="stat-label-glass">Total Geral Recebido</span>
+            <span class="stat-num-glass" id="cf-total-collected" style="font-size: 1.55rem;">¥ 0</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Confirmado e Pago</span>
+          </div>
+          <div class="stat-box-glass" style="background: rgba(254, 252, 232, 0.85); border-color: #fde047;">
+            <span class="stat-label-glass" style="color: #854d0e;">🟡 Pendente a Receber</span>
+            <span class="stat-num-glass" id="cf-total-pending" style="color: #a16207; font-size: 1.55rem;">¥ 0</span>
+            <span style="font-size: 0.72rem; color: #854d0e; font-weight: 700;">Não pago ainda</span>
+          </div>
+        </div>
+
+        <!-- Tabela de Prestação de Contas por Colaborador -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 0.95rem; font-weight: 800; color: #1c1917; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span>👥 Prestação de Contas por Colaborador / Aparelho</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Conferência de Dinheiro</span>
+          </div>
+          <div id="cf-operators-table-container" style="overflow-x: auto;">
+            <!-- Renderizado dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- Balanço de Porções da Cozinha -->
+        <div style="background: rgba(255, 247, 237, 0.8); border: 1.5px solid #fed7aa; border-radius: 14px; padding: 14px; margin-bottom: 16px;">
+          <div style="font-weight: 800; font-size: 0.88rem; color: #9a3412; margin-bottom: 6px;">🍲 Balanço de Porções (Cozinha & Entrega)</div>
+          <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div>
+              <div style="font-size: 1.3rem; font-weight: 900; color: #1c1917;" id="cf-feijoadas-sold">0</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">Vendidas</div>
+            </div>
+            <div>
+              <div style="font-size: 1.3rem; font-weight: 900; color: #16a34a;" id="cf-feijoadas-delivered">0</div>
+              <div style="font-size: 0.72rem; color: #16a34a; font-weight: 700;">Entregues</div>
+            </div>
+            <div>
+              <div style="font-size: 1.3rem; font-weight: 900; color: #ea580c;" id="cf-feijoadas-pending">0</div>
+              <div style="font-size: 0.72rem; color: #ea580c; font-weight: 700;">Não Retiradas</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações do Modal -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="api/export/cashflow-csv" class="btn-glass btn-success-glass" style="flex: 1; text-decoration: none; text-align: center; justify-content: center;">
+            📥 Baixar Excel do Caixa
+          </a>
+          <button type="button" id="btn-print-cashflow" class="btn-glass btn-secondary-glass" style="flex: 1;">
+            🖨️ Imprimir Resumo
+          </button>
+        </div>
       </div>
     </div>
   </div>

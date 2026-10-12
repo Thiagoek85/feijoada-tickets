@@ -1341,3 +1341,80 @@ body.mode-admin .operational-only {
   background: linear-gradient(135deg, rgba(236, 253, 245, 0.9) 0%, rgba(209, 250, 229, 0.9) 100%);
   border-color: #6ee7b7;
 }
+
+/* Pill de identificação do Operador / Smartphone */
+.operator-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid #fed7aa;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #c2410c;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.operator-header-pill:active {
+  transform: scale(0.96);
+  background: #ffedd5;
+}
+
+/* Modal de Fechamento de Caixa Unificado */
+.cf-table-glass {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.cf-table-glass th {
+  background: rgba(248, 250, 252, 0.9);
+  padding: 10px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.cf-table-glass td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cf-badge-operator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* Alerta de Pagamento Pendente no Scanner */
+.scan-pending-box {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0;
+  text-align: center;
+  animation: pulseBox 2s infinite;
+}
+
+@keyframes pulseBox {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.015); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25); }
+  100% { transform: scale(1); }
+}

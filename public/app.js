@@ -95,8 +95,149 @@ function formatMoney(amount) {
 const STORAGE_PROFILE_KEY = 'feijoada_app_profile';
 let currentProfile = null; // 'operacional' | 'admin' | null
 
+// Operador e Identificação do Smartphone
+const STORAGE_OPERATOR_KEY = 'feijoada_app_operator_name_v1';
+const SESSION_ADMIN_PIN_KEY = 'feijoada_admin_pin_session';
+
+function getOperatorName() {
+  try {
+    return localStorage.getItem(STORAGE_OPERATOR_KEY) || 'Smartphone Balcão';
+  } catch (e) {
+    return 'Smartphone Balcão';
+  }
+}
+
+function setOperatorName(name) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return;
+  try {
+    localStorage.setItem(STORAGE_OPERATOR_KEY, trimmed);
+  } catch (e) {}
+  updateOperatorUI();
+}
+
+function updateOperatorUI() {
+  const el = document.getElementById('operator-pill-name');
+  if (el) el.textContent = getOperatorName();
+}
+
+function getSessionAdminPin() {
+  try {
+    return sessionStorage.getItem(SESSION_ADMIN_PIN_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function setSessionAdminPin(pin) {
+  try {
+    sessionStorage.setItem(SESSION_ADMIN_PIN_KEY, pin);
+  } catch (e) {}
+}
+
+function openPinModal(onSuccess) {
+  const modal = document.getElementById('pin-modal');
+  const input = document.getElementById('input-admin-pin');
+  const errorMsg = document.getElementById('pin-error-msg');
+  const btnConfirm = document.getElementById('btn-confirm-pin');
+  const btnCancel = document.getElementById('btn-cancel-pin');
+  const btnClose = document.getElementById('btn-close-pin-modal');
+
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (input) {
+    input.value = '';
+    setTimeout(() => input.focus(), 150);
+  }
+  if (modal) modal.classList.add('active');
+
+  const cleanup = () => {
+    if (modal) modal.classList.remove('active');
+    btnConfirm.onclick = null;
+    btnCancel.onclick = null;
+    if (btnClose) btnClose.onclick = null;
+  };
+
+  const doVerify = async () => {
+    const pin = input ? input.value.trim() : '';
+    if (!pin) return;
+    try {
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = 'Verificando...';
+      const res = await fetch(`${BASE_PATH}/api/auth/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSessionAdminPin(pin);
+        cleanup();
+        if (typeof onSuccess === 'function') onSuccess();
+      } else {
+        if (errorMsg) {
+          errorMsg.textContent = data.error || 'PIN incorreto. Tente novamente.';
+          errorMsg.style.display = 'block';
+        }
+        input.value = '';
+        input.focus();
+      }
+    } catch (err) {
+      alert('Erro de conexão ao verificar PIN.');
+    } finally {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = '🔓 Acessar Administração';
+    }
+  };
+
+  btnConfirm.onclick = doVerify;
+  input.onkeypress = (e) => { if (e.key === 'Enter') doVerify(); };
+  btnCancel.onclick = cleanup;
+  if (btnClose) btnClose.onclick = cleanup;
+}
+
+function setupOperatorModal() {
+  const modal = document.getElementById('operator-modal');
+  const btnTrigger = document.getElementById('btn-edit-operator');
+  const btnClose = document.getElementById('btn-close-operator-modal');
+  const btnSave = document.getElementById('btn-save-operator-name');
+  const input = document.getElementById('input-operator-name');
+
+  function openModal() {
+    triggerHaptic('light');
+    if (input) input.value = getOperatorName();
+    if (modal) modal.classList.add('active');
+    setTimeout(() => { if (input) input.focus(); }, 150);
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.remove('active');
+  }
+
+  if (btnTrigger) btnTrigger.addEventListener('click', openModal);
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      triggerHaptic('success');
+      const val = input ? input.value.trim() : '';
+      if (val) {
+        setOperatorName(val);
+        closeModal();
+      }
+    });
+  }
+}
+
 // Inicialização ao carregar
 document.addEventListener('DOMContentLoaded', () => {
+  updateOperatorUI();
+  setupOperatorModal();
+  setupCashflowModal();
   setupProfileManagement();
   setupDockNavigation();
   loadConfig();
@@ -154,6 +295,21 @@ function setupProfileManagement() {
 }
 
 function selectProfile(profile) {
+  if (profile === 'admin') {
+    const verifiedPin = getSessionAdminPin();
+    if (verifiedPin) {
+      applyProfileAndSave(profile);
+    } else {
+      openPinModal(() => {
+        applyProfileAndSave(profile);
+      });
+    }
+  } else {
+    applyProfileAndSave(profile);
+  }
+}
+
+function applyProfileAndSave(profile) {
   try {
     localStorage.setItem(STORAGE_PROFILE_KEY, profile);
   } catch (e) {
@@ -374,7 +530,8 @@ function setupSalesForm() {
       payment_method: 'dinheiro',
       payment_status: document.getElementById('payment_status')?.value || 'pago',
       payment_date: (salesPayDateHidden ? salesPayDateHidden.value : '') || todayIso,
-      notes: document.getElementById('ticket_notes').value.trim()
+      notes: document.getElementById('ticket_notes').value.trim(),
+      sold_by: getOperatorName()
     };
 
     try {
@@ -755,12 +912,41 @@ async function validateCode(code) {
         ${data.ticket.delivered_quantity > 0 ? `<span style="color: #92400e;">⚠️ Atenção: ${data.ticket.delivered_quantity} porção(ões) já foram retiradas anteriormente.</span>` : ''}
       `;
 
-      actionContainer.innerHTML = `
-        <button type="button" id="btn-confirm-delivery" class="btn-glass btn-success-glass btn-large-hero">
-          🍲 CONFIRMAR ENTREGA DE ${rem} PORÇÃO(ÕES)
-        </button>
-      `;
-      document.getElementById('btn-confirm-delivery').addEventListener('click', confirmDelivery);
+      const isPending = Boolean(data.needs_payment || data.ticket.payment_status === 'pendente');
+      const amountDue = data.amount_due || data.ticket.total_price;
+
+      if (isPending) {
+        badge.style.background = '#d97706';
+        badge.style.color = 'white';
+        badge.textContent = '⚠️ PAGAMENTO PENDENTE!';
+
+        actionContainer.innerHTML = `
+          <div class="scan-pending-box">
+            <div style="color: #92400e; font-weight: 900; font-size: 1.05rem;">⚠️ COBRAR ANTES DE ENTREGAR!</div>
+            <div style="color: #b45309; font-size: 1.45rem; font-weight: 900; margin: 4px 0;">RECEBER ${formatMoney(amountDue)}</div>
+            <div style="color: #78350f; font-size: 0.75rem;">Receba em dinheiro físico e confirme a entrega abaixo:</div>
+          </div>
+          <button type="button" id="btn-confirm-delivery-paid" class="btn-glass btn-large-hero" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; margin-bottom: 8px;">
+            💵 RECEBER ${formatMoney(amountDue)} & ENTREGAR 🍲
+          </button>
+          <button type="button" id="btn-confirm-delivery-unpaid" class="btn-glass btn-secondary-glass" style="font-size: 0.78rem; color: #b45309;">
+            ⚠️ Entregar SEM cobrar (Cortesia / Autorizado)
+          </button>
+        `;
+        document.getElementById('btn-confirm-delivery-paid').addEventListener('click', () => confirmDelivery({ receivedPayment: true }));
+        document.getElementById('btn-confirm-delivery-unpaid').addEventListener('click', () => {
+          if (confirm('Deseja realmente entregar SEM registrar o recebimento do dinheiro?')) {
+            confirmDelivery({ receivedPayment: false });
+          }
+        });
+      } else {
+        actionContainer.innerHTML = `
+          <button type="button" id="btn-confirm-delivery" class="btn-glass btn-success-glass btn-large-hero">
+            🍲 CONFIRMAR ENTREGA DE ${rem} PORÇÃO(ÕES)
+          </button>
+        `;
+        document.getElementById('btn-confirm-delivery').addEventListener('click', () => confirmDelivery({ receivedPayment: false }));
+      }
 
     } else if (data.already_delivered || data.status === 'entregue') {
       // 🔴 JÁ UTILIZADO / BLOQUEADO
@@ -816,12 +1002,16 @@ async function validateCode(code) {
 }
 
 // Confirmar Baixa
-async function confirmDelivery() {
+async function confirmDelivery(options = {}) {
   if (!currentTicketData) return;
 
-  const btn = document.getElementById('btn-confirm-delivery');
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳ Registrando...</span>';
+  const btn = document.getElementById('btn-confirm-delivery') || document.getElementById('btn-confirm-delivery-paid');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Registrando Entrega...</span>';
+  }
+
+  const receivedPay = Boolean(options && options.receivedPayment);
 
   try {
     const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(currentTicketData.code)}/deliver`, {
@@ -829,7 +1019,8 @@ async function confirmDelivery() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         quantity_to_deliver: currentTicketData.quantity - currentTicketData.delivered_quantity,
-        delivered_by: 'Balcão de Entrega'
+        delivered_by: getOperatorName(),
+        received_payment: receivedPay
       })
     });
 
@@ -888,13 +1079,23 @@ async function loadStats() {
     document.getElementById('dash-pending-qty').textContent = data.pending_feijoadas;
     document.getElementById('dash-revenue').textContent = formatMoney(data.total_revenue);
 
+    const cashRevEl = document.getElementById('dash-cash-revenue');
+    if (cashRevEl) {
+      cashRevEl.textContent = formatMoney(data.cash_revenue || 0);
+    }
+
+    const pendingRevEl = document.getElementById('dash-pending-revenue');
+    if (pendingRevEl) {
+      pendingRevEl.textContent = formatMoney(data.pending_revenue || 0);
+    }
+
     const balcaoRevEl = document.getElementById('dash-balcao-revenue');
     if (balcaoRevEl) {
       balcaoRevEl.textContent = formatMoney(data.balcao_revenue || 0);
     }
     const balcaoCountEl = document.getElementById('dash-balcao-count');
     if (balcaoCountEl) {
-      balcaoCountEl.textContent = `${data.balcao_feijoadas || 0} porções no dinheiro`;
+      balcaoCountEl.textContent = `${data.balcao_feijoadas || 0} porções no balcão`;
     }
 
     const bar = document.getElementById('dash-progress-bar');
@@ -1625,7 +1826,10 @@ async function deleteTicketPermanently(code, buyerName) {
 
   try {
     const res = await fetch(`${BASE_PATH}/api/tickets/${encodeURIComponent(code)}/purge`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'x-admin-pin': getSessionAdminPin()
+      }
     });
     const data = await res.json();
     if (res.ok) {
@@ -1692,7 +1896,10 @@ function setupPurgeModal() {
     try {
       const res = await fetch(`${BASE_PATH}/api/tickets/purge-bulk`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': getSessionAdminPin()
+        },
         body: JSON.stringify({ target })
       });
       const data = await res.json();
@@ -1862,7 +2069,8 @@ function setupBalcaoSale() {
             payment_method: 'dinheiro',
             payment_status: 'pago',
             sale_channel: 'balcao',
-            auto_deliver: autoDeliver
+            auto_deliver: autoDeliver,
+            sold_by: getOperatorName()
           })
         });
 
@@ -1935,3 +2143,98 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+
+// ==================== FECHAMENTO DE CAIXA UNIFICADO ====================
+function setupCashflowModal() {
+  const modal = document.getElementById('cashflow-modal');
+  const btnTrigger = document.getElementById('btn-open-cashflow-modal');
+  const btnClose = document.getElementById('btn-close-cashflow-modal');
+  const btnPrint = document.getElementById('btn-print-cashflow');
+
+  function openModal() {
+    triggerHaptic('light');
+    if (modal) modal.classList.add('active');
+    loadCashflowSummary();
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.remove('active');
+  }
+
+  if (btnTrigger) btnTrigger.addEventListener('click', openModal);
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  if (btnPrint) {
+    btnPrint.addEventListener('click', () => {
+      window.print();
+    });
+  }
+}
+
+async function loadCashflowSummary() {
+  try {
+    const res = await fetch(`${BASE_PATH}/api/cashflow/summary`);
+    const data = await res.json();
+    if (!res.ok) return;
+
+    const s = data.summary;
+    const totalCashEl = document.getElementById('cf-total-cash');
+    const totalDigitalEl = document.getElementById('cf-total-digital');
+    const totalCollectedEl = document.getElementById('cf-total-collected');
+    const totalPendingEl = document.getElementById('cf-total-pending');
+
+    if (totalCashEl) totalCashEl.textContent = formatMoney(s.confirmed_cash || 0);
+    if (totalDigitalEl) totalDigitalEl.textContent = formatMoney(s.confirmed_digital || 0);
+    if (totalCollectedEl) totalCollectedEl.textContent = formatMoney(s.total_collected || 0);
+    if (totalPendingEl) totalPendingEl.textContent = formatMoney(s.pending_amount || 0);
+
+    const soldEl = document.getElementById('cf-feijoadas-sold');
+    const delivEl = document.getElementById('cf-feijoadas-delivered');
+    const pendEl = document.getElementById('cf-feijoadas-pending');
+
+    if (soldEl) soldEl.textContent = s.total_feijoadas || 0;
+    if (delivEl) delivEl.textContent = s.total_delivered || 0;
+    if (pendEl) pendEl.textContent = s.pending_deliveries || 0;
+
+    const container = document.getElementById('cf-operators-table-container');
+    if (container) {
+      if (data.by_operator && data.by_operator.length > 0) {
+        container.innerHTML = `
+          <table class="cf-table-glass">
+            <thead>
+              <tr>
+                <th>Colaborador / Ponto</th>
+                <th style="text-align: center;">Vendas</th>
+                <th style="text-align: center;">Porções</th>
+                <th style="text-align: right; color: #047857;">Dinheiro Físico</th>
+                <th style="text-align: right; color: #2563eb;">Digital</th>
+                <th style="text-align: right; font-weight: 900;">Total Caixa</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.by_operator.map(op => `
+                <tr>
+                  <td><span class="cf-badge-operator">👤 ${escapeHtml(op.operator)}</span></td>
+                  <td style="text-align: center;">${op.tickets_count}</td>
+                  <td style="text-align: center; font-weight: 800;">${op.feijoadas_count}</td>
+                  <td style="text-align: right; color: #047857; font-weight: 800;">${formatMoney(op.cash_collected)}</td>
+                  <td style="text-align: right; color: #2563eb;">${formatMoney(op.digital_collected)}</td>
+                  <td style="text-align: right; font-weight: 900; color: #0f172a;">${formatMoney(op.total_collected)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } else {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 16px;">Nenhuma venda registrada ainda.</div>`;
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao carregar fechamento de caixa:', err);
+  }
+}
