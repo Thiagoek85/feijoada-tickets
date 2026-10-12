@@ -506,6 +506,17 @@ function setupScanner() {
     }
   });
 
+  const manualToggleBtn = document.getElementById('btn-toggle-manual-input');
+  const manualContainer = document.getElementById('manual-code-container');
+  if (manualToggleBtn && manualContainer) {
+    manualToggleBtn.addEventListener('click', () => {
+      triggerHaptic('light');
+      const isVisible = manualContainer.style.display !== 'none';
+      manualContainer.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) manualInput.focus();
+    });
+  }
+
   deliverBtn.addEventListener('click', confirmDelivery);
 }
 
@@ -590,6 +601,9 @@ function onScanSuccess(decodedText) {
 
 // Validar código com a API
 async function validateCode(code) {
+  const inlineBalcaoBox = document.getElementById('balcao-inline-box');
+  if (inlineBalcaoBox) inlineBalcaoBox.style.display = 'none';
+
   const resultCard = document.getElementById('scan-result');
   const badge = document.getElementById('scan-badge');
   const buyerEl = document.getElementById('scan-buyer-name');
@@ -1603,106 +1617,126 @@ function setupPurgeModal() {
   }
 }
 
-// ==================== VENDA RÁPIDA DE BALCÃO (FLUXO OTIMIZADO) ====================
+// ==================== VENDA RÁPIDA DE BALCÃO (FLUXO OTIMIZADO NA TELA DO SCANNER) ====================
 function setupBalcaoSale() {
-  const modal = document.getElementById('balcao-modal');
-  const btnTrigger = document.getElementById('btn-quick-balcao-trigger');
-  const btnClose = document.getElementById('btn-close-balcao-modal');
-  const btnCancel = document.getElementById('btn-cancel-balcao');
-  const form = document.getElementById('form-balcao-quick');
-  const stepperDisplay = document.getElementById('balcao-stepper-display');
-  const qtyInput = document.getElementById('balcao-quantity');
-  const btnMinus = document.getElementById('btn-balcao-minus');
-  const btnPlus = document.getElementById('btn-balcao-plus');
-  const qtyChips = document.querySelectorAll('[data-balcaoqty]');
-  const totalPreview = document.getElementById('balcao-calculated-total');
-  const submitBtn = document.getElementById('btn-submit-balcao');
-  const buyerNameInput = document.getElementById('balcao-buyer-name');
-  const autoDeliverCheckbox = document.getElementById('balcao-auto-deliver');
+  // Caixa Inline na própria tela do Scanner
+  const inlineBox = document.getElementById('balcao-inline-box');
+  const btnToggleInline = document.getElementById('btn-toggle-inline-balcao');
+  const btnCloseInline = document.getElementById('btn-close-inline-balcao');
+  const btnInlineMinus = document.getElementById('btn-inline-minus');
+  const btnInlinePlus = document.getElementById('btn-inline-plus');
+  const inlineQtyDisplay = document.getElementById('inline-stepper-display');
+  const inlineQtyInput = document.getElementById('inline-ticket-qty');
+  const inlineChips = document.querySelectorAll('[data-inlineqty]');
+  const inlineTotalDisplay = document.getElementById('inline-total-display');
+  const inlineBuyerName = document.getElementById('inline-buyer-name');
+  const inlineAutoDeliver = document.getElementById('inline-auto-deliver');
+  const btnConfirmSale = document.getElementById('btn-confirm-inline-sale');
+  const formState = document.getElementById('inline-balcao-form-state');
+  const successState = document.getElementById('inline-balcao-success-state');
+  const btnNextSale = document.getElementById('btn-next-inline-sale');
 
-  function openBalcaoModal() {
-    triggerHaptic('light');
-    if (modal) modal.classList.add('active');
-    updateBalcaoTotal();
-    setTimeout(() => {
-      if (buyerNameInput) buyerNameInput.focus();
-    }, 150);
-  }
-
-  function closeBalcaoModal() {
-    if (modal) modal.classList.remove('active');
-  }
-
-  function updateBalcaoTotal() {
-    const qty = parseInt(qtyInput ? qtyInput.value : 1, 10) || 1;
-    if (stepperDisplay) stepperDisplay.textContent = qty;
+  function updateInlineTotal() {
+    const qty = parseInt(inlineQtyInput ? inlineQtyInput.value : 1, 10) || 1;
+    if (inlineQtyDisplay) inlineQtyDisplay.textContent = qty;
     const unitPrice = Number(eventConfig.unit_price) || 1000;
     const total = qty * unitPrice;
-    if (totalPreview) totalPreview.textContent = formatMoney(total);
+    if (inlineTotalDisplay) inlineTotalDisplay.textContent = formatMoney(total);
+    if (btnConfirmSale) {
+      btnConfirmSale.textContent = `💰 CONFIRMAR VENDA & RECEBER (${formatMoney(total)})`;
+    }
 
-    qtyChips.forEach(chip => {
-      const chipQty = parseInt(chip.getAttribute('data-balcaoqty'), 10);
+    inlineChips.forEach(chip => {
+      const chipQty = parseInt(chip.getAttribute('data-inlineqty'), 10);
       chip.classList.toggle('active', chipQty === qty);
     });
   }
 
-  if (btnTrigger) btnTrigger.addEventListener('click', openBalcaoModal);
-  if (btnClose) btnClose.addEventListener('click', closeBalcaoModal);
-  if (btnCancel) btnCancel.addEventListener('click', closeBalcaoModal);
+  function openInlineBalcao() {
+    triggerHaptic('light');
+    if (!inlineBox) return;
 
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeBalcaoModal();
+    // Fecha o resultado do scanner de leitura se estiver aberto
+    const scanResult = document.getElementById('scan-result');
+    if (scanResult) scanResult.style.display = 'none';
+
+    // Reseta estado para formulário
+    if (formState) formState.style.display = 'block';
+    if (successState) successState.style.display = 'none';
+
+    inlineBox.style.display = 'block';
+    updateInlineTotal();
+
+    // Rola suavemente até a caixa se necessário
+    setTimeout(() => {
+      inlineBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (inlineBuyerName) inlineBuyerName.focus();
+    }, 100);
+  }
+
+  function closeInlineBalcao() {
+    if (inlineBox) inlineBox.style.display = 'none';
+  }
+
+  if (btnToggleInline) {
+    btnToggleInline.addEventListener('click', () => {
+      if (inlineBox && inlineBox.style.display !== 'none') {
+        closeInlineBalcao();
+      } else {
+        openInlineBalcao();
+      }
     });
   }
 
-  if (btnMinus) {
-    btnMinus.addEventListener('click', () => {
+  if (btnCloseInline) {
+    btnCloseInline.addEventListener('click', closeInlineBalcao);
+  }
+
+  if (btnInlineMinus) {
+    btnInlineMinus.addEventListener('click', () => {
       triggerHaptic('light');
-      let val = parseInt(qtyInput.value, 10) || 1;
+      let val = parseInt(inlineQtyInput.value, 10) || 1;
       if (val > 1) {
-        qtyInput.value = val - 1;
-        updateBalcaoTotal();
+        inlineQtyInput.value = val - 1;
+        updateInlineTotal();
       }
     });
   }
 
-  if (btnPlus) {
-    btnPlus.addEventListener('click', () => {
+  if (btnInlinePlus) {
+    btnInlinePlus.addEventListener('click', () => {
       triggerHaptic('light');
-      let val = parseInt(qtyInput.value, 10) || 1;
+      let val = parseInt(inlineQtyInput.value, 10) || 1;
       if (val < 50) {
-        qtyInput.value = val + 1;
-        updateBalcaoTotal();
+        inlineQtyInput.value = val + 1;
+        updateInlineTotal();
       }
     });
   }
 
-  qtyChips.forEach(chip => {
+  inlineChips.forEach(chip => {
     chip.addEventListener('click', () => {
       triggerHaptic('light');
-      const qty = parseInt(chip.getAttribute('data-balcaoqty'), 10);
-      if (qty && qtyInput) {
-        qtyInput.value = qty;
-        updateBalcaoTotal();
+      const qty = parseInt(chip.getAttribute('data-inlineqty'), 10);
+      if (qty && inlineQtyInput) {
+        inlineQtyInput.value = qty;
+        updateInlineTotal();
       }
     });
   });
 
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  if (btnConfirmSale) {
+    btnConfirmSale.addEventListener('click', async () => {
       triggerHaptic('light');
-
-      const qty = parseInt(qtyInput ? qtyInput.value : 1, 10) || 1;
-      let buyerName = buyerNameInput ? buyerNameInput.value.trim() : '';
+      const qty = parseInt(inlineQtyInput ? inlineQtyInput.value : 1, 10) || 1;
+      let buyerName = inlineBuyerName ? inlineBuyerName.value.trim() : '';
       if (!buyerName) {
         buyerName = `Cliente Balcão #${Math.floor(100 + Math.random() * 900)}`;
       }
-      const autoDeliver = autoDeliverCheckbox ? autoDeliverCheckbox.checked : true;
+      const autoDeliver = inlineAutoDeliver ? inlineAutoDeliver.checked : true;
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Gravando Venda...';
+      btnConfirmSale.disabled = true;
+      btnConfirmSale.textContent = 'Gravando Venda...';
 
       try {
         const res = await fetch(`${BASE_PATH}/api/tickets`, {
@@ -1721,34 +1755,63 @@ function setupBalcaoSale() {
         const data = await res.json();
         if (res.ok && data.success) {
           playSuccessSound();
-          closeBalcaoModal();
 
-          // Reset formulário
-          if (qtyInput) qtyInput.value = 1;
-          if (buyerNameInput) buyerNameInput.value = '';
-          if (autoDeliverCheckbox) autoDeliverCheckbox.checked = true;
-          updateBalcaoTotal();
+          // Exibe o estado de sucesso idêntico ao scan-result
+          if (formState) formState.style.display = 'none';
+          if (successState) {
+            successState.style.display = 'block';
+            const qtyText = document.getElementById('inline-success-qty-text');
+            const detailsText = document.getElementById('inline-success-details-text');
+            if (qtyText) qtyText.textContent = `${data.ticket.quantity} Porção(ões) • ${formatMoney(data.ticket.total_price)}`;
+            if (detailsText) {
+              detailsText.innerHTML = `
+                Código: <strong style="color: #c2410c;">${data.ticket.code}</strong><br>
+                Comprador: <strong>${escapeHtml(data.ticket.buyer_name)}</strong><br>
+                Status: <strong>${autoDeliver ? 'Marmita Entregue 🍲' : 'Aguardando Retirada'}</strong><br>
+                Caixa atualizado (+${formatMoney(data.ticket.total_price)})
+              `;
+            }
+          }
 
           loadStats();
           if (document.getElementById('tab-list').classList.contains('active')) {
             loadTickets();
           }
-
-          alert(`✅ VENDA DE BALCÃO REGISTRADA!\n\n• Código: ${data.ticket.code}\n• Comprador: ${data.ticket.buyer_name}\n• Total: ${formatMoney(data.ticket.total_price)} (Dinheiro)\n• Status: ${autoDeliver ? 'Entregue no Balcão 🍲' : 'Aguardando Retirada'}`);
         } else {
           playErrorSound();
-          alert(`Erro ao registrar venda: ${data.error || 'Falha no servidor'}`);
+          alert(`Erro: ${data.error || 'Falha ao registrar venda'}`);
         }
       } catch (err) {
         playErrorSound();
         console.error('Erro na venda de balcão:', err);
-        alert('Erro de conexão ao salvar venda de balcão.');
+        alert('Erro de conexão ao registrar venda.');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '💰 CONFIRMAR VENDA DE BALCÃO';
+        btnConfirmSale.disabled = false;
+        updateInlineTotal();
       }
     });
   }
+
+  if (btnNextSale) {
+    btnNextSale.addEventListener('click', () => {
+      triggerHaptic('light');
+      // Reseta formulário para próximo cliente
+      if (inlineQtyInput) inlineQtyInput.value = 1;
+      if (inlineBuyerName) inlineBuyerName.value = '';
+      if (inlineAutoDeliver) inlineAutoDeliver.checked = true;
+      if (formState) formState.style.display = 'block';
+      if (successState) successState.style.display = 'none';
+      updateInlineTotal();
+      if (inlineBuyerName) inlineBuyerName.focus();
+    });
+  }
+
+  // Compatibilidade com modal popup se chamado de outros pontos
+  const modal = document.getElementById('balcao-modal');
+  const btnCloseModal = document.getElementById('btn-close-balcao-modal');
+  const btnCancelModal = document.getElementById('btn-cancel-balcao');
+  if (btnCloseModal && modal) btnCloseModal.addEventListener('click', () => modal.classList.remove('active'));
+  if (btnCancelModal && modal) btnCancelModal.addEventListener('click', () => modal.classList.remove('active'));
 }
 
 // Registro PWA (Service Worker para Android e iOS)

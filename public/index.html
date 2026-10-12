@@ -267,73 +267,73 @@
       </div>
     </section>
 
-    <!-- ==================== ABA 2: LEITOR QR CODE (SCANNER) ==================== -->
+    <!-- ==================== ABA 2: LEITOR QR CODE & VENDA DE BALCÃO (OPERACIONAL) ==================== -->
     <section id="tab-scanner" class="tab-pane">
-      <div class="glass-card">
-        <div class="glass-card-title">
-          <span>📷 Leitor de QR Code para Entrega</span>
-          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Balcão</span>
-        </div>
-
-        <!-- Botão Hero de Ação Rápida: Venda de Balcão -->
-        <div class="balcao-quick-banner" style="margin-bottom: 14px;">
-          <button type="button" id="btn-quick-balcao-trigger" class="btn-glass btn-balcao-hero">
-            <span style="font-size: 1.5rem;">🏪</span>
-            <div style="text-align: left; flex: 1;">
-              <div style="font-weight: 900; font-size: 0.98rem; line-height: 1.2;">Venda de Balcão Rápida</div>
-              <div style="font-size: 0.74rem; opacity: 0.9;">Dinheiro • ¥ 1.000 / porção • Vender & Entregar</div>
+      <div class="glass-card" style="padding: 16px 14px;">
+        
+        <!-- HEADER DE AÇÕES PRINCIPAIS EM DESTAQUE GIGANTE -->
+        <div class="scanner-dual-actions">
+          <!-- Botão 1: Leitura / Foto do QR Code -->
+          <label for="qr-camera-capture" class="btn-glass action-card-btn action-scan-card" id="btn-trigger-scan-action">
+            <span class="action-card-icon">📸</span>
+            <div class="action-card-info">
+              <span class="action-card-title">LER QR CODE</span>
+              <span class="action-card-subtitle">Confirmar Entrega</span>
             </div>
-            <span class="btn-balcao-action-tag">⚡ Vender</span>
-          </button>
-        </div>
-
-        <!-- Janela de Câmera -->
-        <div id="reader"></div>
-
-        <!-- Botões Táteis Grandes de Leitura -->
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
-          <!-- Botão Gigante de Foto (Funciona 100% de qualquer URL!) -->
-          <label for="qr-camera-capture" class="btn-glass btn-primary-glass btn-large-hero" style="cursor: pointer;">
-            <span>📸 TIRAR FOTO / LER QR CODE</span>
           </label>
           <input type="file" id="qr-camera-capture" accept="image/*" capture="environment" style="display: none;">
 
-          <div style="display: flex; gap: 10px;">
-            <button type="button" id="btn-toggle-camera" class="btn-glass btn-secondary-glass" style="flex: 1;">
-              🎥 Vídeo Contínuo
-            </button>
-            <label for="qr-file-upload" class="btn-glass btn-secondary-glass" style="flex: 1; cursor: pointer; text-align: center;">
-              📁 Galeria
-            </label>
-            <input type="file" id="qr-file-upload" accept="image/*" style="display: none;">
-          </div>
+          <!-- Botão 2: Venda de Balcão Super Explícito -->
+          <button type="button" id="btn-toggle-inline-balcao" class="btn-glass action-card-btn action-balcao-card">
+            <span class="action-card-icon">🏪</span>
+            <div class="action-card-info">
+              <span class="action-card-title">VENDA BALCÃO</span>
+              <span class="action-card-subtitle">Dinheiro • ¥ 1.000</span>
+            </div>
+          </button>
         </div>
 
-        <div id="scanner-status-text" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-          Toque no botão <strong>"Tirar Foto"</strong> para escanear com 1 toque.
+        <!-- Janela de Câmera Compacta & Centralizada -->
+        <div id="reader-container" style="text-align: center;">
+          <div id="reader"></div>
         </div>
 
-        <!-- Validação Manual por Código -->
-        <div style="margin-top: 18px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 16px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
-            Ou digite o código do vale:
+        <!-- Controles Secundários Discretos -->
+        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
+          <button type="button" id="btn-toggle-camera" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 36px; padding: 4px 14px; font-size: 0.78rem;">
+            🎥 Vídeo Contínuo
+          </button>
+          <label for="qr-file-upload" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 36px; padding: 4px 14px; font-size: 0.78rem; cursor: pointer;">
+            📁 Galeria
           </label>
+          <input type="file" id="qr-file-upload" accept="image/*" style="display: none;">
+          <button type="button" id="btn-toggle-manual-input" class="btn-glass btn-secondary-glass" style="width: auto; min-height: 36px; padding: 4px 12px; font-size: 0.78rem;">
+            ⌨️ Código
+          </button>
+        </div>
+
+        <div id="scanner-status-text" style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 6px;">
+          Toque em <strong>"📸 LER QR CODE"</strong> ou <strong>"🏪 VENDA BALCÃO"</strong>.
+        </div>
+
+        <!-- Validação Manual por Código (Oculta por padrão para não poluir) -->
+        <div id="manual-code-container" style="display: none; margin-top: 10px; margin-bottom: 12px; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border);">
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="manual-code-input" class="input-glass" placeholder="Ex: FEIJ-1001" autocapitalize="characters" autocomplete="off" style="flex: 1;">
-            <button type="button" id="btn-manual-validate" class="btn-glass btn-secondary-glass" style="width: auto; padding: 0 20px;">
+            <input type="text" id="manual-code-input" class="input-glass" placeholder="Digite código (ex: FEIJ-1001)" autocapitalize="characters" autocomplete="off" style="flex: 1; padding: 8px 12px; font-size: 0.9rem;">
+            <button type="button" id="btn-manual-validate" class="btn-glass btn-secondary-glass" style="width: auto; padding: 0 16px; min-height: 40px; font-size: 0.82rem;">
               Validar
             </button>
           </div>
         </div>
 
-        <!-- FEEDBACK DA LEITURA DO SCANNER -->
+        <!-- ==================== CAIXA 1: CONFIRMAÇÃO DE ENTREGA (FEEDBACK DO SCANNER) ==================== -->
         <div id="scan-result" class="scan-feedback-glass">
-          <div id="scan-badge" style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 10px;">
+          <div id="scan-badge" style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 8px;">
             VÁLIDO
           </div>
           <div id="scan-buyer-name" style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px;">Nome</div>
-          <div id="scan-qty" style="font-size: 1.15rem; font-weight: 800; color: #ea580c; margin-bottom: 10px;">1 Porção</div>
-          <div id="scan-details" style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">Detalhes</div>
+          <div id="scan-qty" style="font-size: 1.15rem; font-weight: 800; color: #ea580c; margin-bottom: 8px;">1 Porção</div>
+          <div id="scan-details" style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 14px;">Detalhes</div>
 
           <div id="scan-action-container">
             <button type="button" id="btn-confirm-delivery" class="btn-glass btn-success-glass btn-large-hero">
@@ -341,6 +341,88 @@
             </button>
           </div>
         </div>
+
+        <!-- ==================== CAIXA 2: CONFIRMAÇÃO DE VENDA DE BALCÃO (MESMO ESTILO) ==================== -->
+        <div id="balcao-inline-box" class="scan-feedback-glass balcao-feedback-box" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: inline-block; padding: 5px 14px; border-radius: 20px; font-weight: 900; font-size: 0.88rem; text-transform: uppercase; background: #d1fae5; color: #047857; border: 1.5px solid #6ee7b7;">
+              🏪 VENDA DE BALCÃO
+            </div>
+            <button type="button" id="btn-close-inline-balcao" style="background: none; border: none; font-size: 1.6rem; color: #78716c; cursor: pointer; padding: 0 6px; line-height: 1;">&times;</button>
+          </div>
+
+          <div id="inline-balcao-form-state">
+            <div style="font-size: 1.35rem; font-weight: 900; color: #1c1917; margin-bottom: 2px;">
+              Pagamento em Dinheiro
+            </div>
+            <div style="font-size: 0.82rem; color: #059669; font-weight: 700; margin-bottom: 12px;">
+              ¥ 1.000 por porção • Caixa Imediato
+            </div>
+
+            <!-- Stepper e Chips de Porção -->
+            <div style="margin-bottom: 12px;">
+              <div class="stepper-container" style="max-width: 250px; margin: 0 auto 8px auto;">
+                <button type="button" class="stepper-btn" id="btn-inline-minus">−</button>
+                <div class="stepper-value-box">
+                  <div class="stepper-value" id="inline-stepper-display">1</div>
+                  <div class="stepper-label">porção(ões)</div>
+                </div>
+                <button type="button" class="stepper-btn" id="btn-inline-plus">+</button>
+              </div>
+              <input type="hidden" id="inline-ticket-qty" value="1">
+
+              <div class="qty-chips" style="justify-content: center; margin-bottom: 10px;">
+                <div class="qty-chip active" data-inlineqty="1">1 Porção</div>
+                <div class="qty-chip" data-inlineqty="2">2 Porções</div>
+                <div class="qty-chip" data-inlineqty="3">3 Porções</div>
+                <div class="qty-chip" data-inlineqty="4">4 Porções</div>
+              </div>
+            </div>
+
+            <!-- Nome Opcional -->
+            <div style="margin-bottom: 12px; max-width: 320px; margin-left: auto; margin-right: auto;">
+              <input type="text" id="inline-buyer-name" class="input-glass" placeholder="Nome do Cliente (Opcional)" style="text-align: center; font-size: 0.92rem; padding: 10px;" autocomplete="off">
+            </div>
+
+            <!-- Toggle de Entrega Imediata -->
+            <div style="margin-bottom: 14px; background: rgba(255,255,255,0.75); border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="inline-auto-deliver" checked style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+              <label for="inline-auto-deliver" style="font-size: 0.85rem; font-weight: 700; color: #065f46; cursor: pointer; margin: 0;">
+                🍲 Já Entregar Marmita Agora
+              </label>
+            </div>
+
+            <!-- Banner do Total Dinheiro -->
+            <div class="price-banner-glass" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: #6ee7b7; padding: 10px 16px; margin-bottom: 14px;">
+              <span class="price-banner-label" style="color: #065f46; font-size: 0.8rem;">TOTAL A RECEBER:</span>
+              <span class="price-banner-value" id="inline-total-display" style="color: #047857; font-size: 1.55rem;">¥ 1.000</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" id="btn-confirm-inline-sale" class="btn-glass btn-large-hero" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);">
+                💰 CONFIRMAR VENDA & RECEBER (¥ 1.000)
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado de Sucesso pós-venda -->
+          <div id="inline-balcao-success-state" style="display: none;">
+            <div style="font-size: 2.3rem; margin-bottom: 6px;">🎉</div>
+            <div style="font-size: 1.35rem; font-weight: 900; color: #047857; margin-bottom: 4px;">
+              VENDA DE BALCÃO CONCLUÍDA!
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: #1c1917; margin-bottom: 4px;" id="inline-success-qty-text">
+              1 Porção • ¥ 1.000
+            </div>
+            <div id="inline-success-details-text" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 14px;">
+              Código: <strong>FEIJ-0000</strong> • Caixa e Cozinha atualizados!
+            </div>
+            <button type="button" id="btn-next-inline-sale" class="btn-glass btn-large-hero" style="background: #059669; color: white;">
+              ➡️ Próximo Atendimento
+            </button>
+          </div>
+        </div>
+
       </div>
     </section>
 

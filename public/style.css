@@ -582,24 +582,101 @@ body::after {
 /* SCANNER / RESULTADO */
 #reader {
   width: 100%;
+  max-width: 270px;
+  max-height: 175px;
+  margin: 0 auto 10px auto;
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   background: #000;
+  display: block;
+}
+
+#reader video {
+  object-fit: cover !important;
+  max-height: 175px !important;
+  width: 100% !important;
+}
+
+/* GRADE DE AÇÕES PRINCIPAIS EM DESTAQUE GIGANTE */
+.scanner-dual-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.action-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 58px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.action-card-btn:active {
+  transform: scale(0.96);
+}
+
+.action-scan-card {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #ffffff;
+  border: 1.5px solid #fb923c;
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.28);
+}
+
+.action-balcao-card {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: 1.5px solid #34d399;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
+}
+
+.action-card-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.action-card-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.action-card-title {
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.action-card-subtitle {
+  font-size: 0.7rem;
+  opacity: 0.92;
+  font-weight: 700;
+  margin-top: 2px;
 }
 
 .scan-feedback-glass {
-  margin-top: 18px;
+  margin-top: 14px;
   border-radius: var(--radius-lg);
-  padding: 22px 20px;
+  padding: 18px 16px;
   text-align: center;
   box-shadow: var(--glass-shadow-active);
   display: none;
 }
 
-.scan-feedback-glass.success {
-  background: rgba(240, 253, 244, 0.95);
+.scan-feedback-glass.success,
+.balcao-feedback-box {
+  background: rgba(240, 253, 244, 0.97);
   border: 2px solid #34c759;
   color: #14532d;
   animation: slideFadeIn 0.3s ease;
