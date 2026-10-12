@@ -723,6 +723,11 @@ app.get('/print-batch', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'print-batch.html'));
 });
 
+// Servir página do tutorial ilustrado
+app.get('/tutorial', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tutorial.html'));
+});
+
 // Servidor HTTP
 const httpServer = http.createServer(app);
 httpServer.listen(HTTP_PORT, '0.0.0.0', () => {

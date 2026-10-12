@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Tutorial Ilustrado - Vale Feijoada</title>
+  <meta name="theme-color" content="#ea580c">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tutorial-container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px 18px 60px 18px;
+    }
+    
+    .tutorial-header {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: var(--radius-lg);
+      padding: 22px 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+    }
+
+    .btn-back-app {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid #fed7aa;
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #c2410c;
+      text-decoration: none;
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .tutorial-section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #1c1917;
+      margin: 26px 0 14px 0;
+    }
+
+    .install-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 680px) {
+      .install-cards-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .install-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .install-card-ios {
+      border-color: #cbd5e1;
+    }
+
+    .install-card-android {
+      border-color: #86efac;
+    }
+
+    .os-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      align-self: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .os-badge-ios {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+
+    .os-badge-android {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ea580c;
+      color: white;
+      font-weight: 900;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-num-green {
+      background: #16a34a;
+    }
+
+    .step-content {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #292524;
+    }
+
+    .step-content strong {
+      color: #1c1917;
+    }
+
+    .tip-box {
+      background: rgba(254, 243, 199, 0.7);
+      border: 1.5px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #92400e;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      margin-bottom: 16px;
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .feature-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      background: #ffedd5;
+      border: 1.5px solid #fdba74;
+    }
+
+    .feature-icon-box.green {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+
+    .feature-icon-box.blue {
+      background: #e0f2fe;
+      border-color: #7dd3fc;
+    }
+
+    .mockup-visual {
+      background: rgba(248, 250, 252, 0.85);
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-size: 0.84rem;
+      color: #334155;
+    }
+
+    .quick-nav-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+
+    .nav-chip {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #44403c;
+      text-decoration: none;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-chip:active {
+      background: #ea580c;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="tutorial-container">
+    
+    <!-- Topo do Tutorial -->
+    <header class="tutorial-header">
+      <a href="./" class="btn-back-app">← Abrir App</a>
+      <div style="font-size: 2.5rem; margin-top: 14px; margin-bottom: 6px;">📖</div>
+      <h1 style="font-size: 1.5rem; font-weight: 900; color: #1c1917; letter-spacing: -0.5px;">
+        Guia Ilustrado do Aplicativo
+      </h1>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; max-width: 480px; margin-left: auto; margin-right: auto;">
+        Manual passo a passo para instalação no iPhone e Android, operação do balcão e gestão completa.
+      </p>
+    </header>
+
+    <!-- Barra de Navegação Rápida -->
+    <nav class="quick-nav-bar">
+      <a href="#instalacao-pwa" class="nav-chip">📲 Instalar (PWA)</a>
+      <a href="#modo-operacional" class="nav-chip">⚡ Modo Operacional</a>
+      <a href="#venda-balcao" class="nav-chip">🏪 Venda de Balcão</a>
+      <a href="#modo-administrativo" class="nav-chip">👑 Modo Administrativo</a>
+    </nav>
+
+    <!-- ==================== SEÇÃO 1: INSTALAÇÃO DO PWA (IOS VS ANDROID) ==================== -->
+    <section id="instalacao-pwa">
+      <div class="tutorial-section-title">
+        <span>📲</span>
+        <span>Como Instalar como Aplicativo (PWA)</span>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+        O sistema é um <strong>PWA (Progressive Web App)</strong>. Ele funciona direto pelo navegador, mas ao instalar na tela inicial do celular ganha <strong>tela cheia (sem barras)</strong>, <strong>som</strong>, <strong>vibração tátil</strong> e <strong>leitura instantânea de câmera</strong>!
+      </p>
+
+      <div class="install-cards-grid">
+        
+        <!-- CARD APPLE IOS -->
+        <div class="install-card install-card-ios">
+          <div class="os-badge os-badge-ios">
+            <span>🍎</span> Apple iOS (iPhone & iPad)
+          </div>
+          <div style="font-size: 0.78rem; font-weight: 800; color: #dc2626; margin-bottom: 12px; background: #fef2f2; padding: 6px 10px; border-radius: 8px; border: 1px solid #fecaca;">
+            ⚠️ ATENÇÃO: No iPhone, use SEMPRE o <strong>Safari</strong> (não use o Chrome).
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              Abra o link do app no navegador <strong>Safari</strong> do iPhone.
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              Toque no botão central de <strong>Compartilhar</strong> (ícone do quadrado com a seta para cima: <strong>⎋ / 📤</strong>) na barra inferior do Safari.
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              Role a lista para baixo e toque em <strong>"Adicionar à Tela de Início"</strong> (ícone de <strong>[ ➕ ]</strong>).
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              Confirme o nome <strong>"Vale Feijoada"</strong> e toque em <strong>Adicionar</strong> no canto superior direito.
+            </div>
+          </div>
+
+          <div class="tip-box">
+            ✨ <strong>Pronto!</strong> O ícone da feijoada aparecerá na tela do seu iPhone. Abra por ele para ter a experiência de aplicativo nativo em tela cheia!
+          </div>
+        </div>
+
+        <!-- CARD ANDROID -->
+        <div class="install-card install-card-android">
+          <div class="os-badge os-badge-android">
+            <span>🤖</span> Google Android (Samsung, Xiaomi, Pixel)
+          </div>
+          <div style="font-size: 0.78rem; font-weight: 800; color: #15803d; margin-bottom: 12px; background: #f0fdf4; padding: 6px 10px; border-radius: 8px; border: 1px solid #bbf7d0;">
+            💡 No Android, utilize preferencialmente o <strong>Google Chrome</strong>.
+          </div>
+
+          <div class="step-item">
+            <div class="step-num step-num-green">1</div>
+            <div class="step-content">
+              Abra o link no <strong>Google Chrome</strong> do seu smartphone Android.
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num step-num-green">2</div>
+            <div class="step-content">
+              Geralmente surge um aviso no rodapé: <strong>"Adicionar Vale Feijoada à tela inicial"</strong>. Toque nele!
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num step-num-green">3</div>
+            <div class="step-content">
+              Caso o aviso não apareça, toque no <strong>menu de 3 pontos verticais ( ⋮ )</strong> no canto superior direito do Chrome.
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num step-num-green">4</div>
+            <div class="step-content">
+              Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong> e confirme em <strong>Instalar</strong>.
+            </div>
+          </div>
+
+          <div class="tip-box" style="background: #f0fdf4; border-color: #bbf7d0; color: #166534;">
+            ✨ <strong>Pronto!</strong> O app será instalado na sua gaveta de aplicativos com ícone próprio e abrirá com vibração e sons ativados.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SEÇÃO 2: MODO OPERACIONAL ==================== -->
+    <section id="modo-operacional">
+      <div class="tutorial-section-title">
+        <span>⚡</span>
+        <span>Modo Operacional (Balcão, Cozinha & Entrega)</span>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+        Perfil feito para voluntários da linha de frente. Elimina botões complexos e foca em velocidade de fila.
+      </p>
+
+      <!-- Funcionalidade: Leitor de QR Code -->
+      <div class="feature-card">
+        <div class="feature-card-header">
+          <div class="feature-icon-box">📸</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">1. Leitura e Entrega por QR Code</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Confirmação instantânea de retirada da feijoada</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">A</div>
+          <div class="step-content">
+            Toque no botão laranja grande <strong>"📸 LER QR CODE"</strong> no topo da tela do leitor.
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">B</div>
+          <div class="step-content">
+            Aponte a câmera para o QR Code no celular ou comprovante impresso do cliente.
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">C</div>
+          <div class="step-content">
+            Aparece o card verde de confirmação na hora: confira o nome e a quantidade de porções.
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">D</div>
+          <div class="step-content">
+            Toque no botão hero: <strong>"🍲 CONFIRMAR ENTREGA DA FEIJOADA"</strong>. O sistema emite som de sucesso, vibra o celular e debita o estoque da cozinha!
+          </div>
+        </div>
+      </div>
+
+      <!-- Funcionalidade: Venda de Balcão Rápida -->
+      <div class="feature-card" id="venda-balcao" style="border-color: #86efac; background: rgba(240, 253, 244, 0.7);">
+        <div class="feature-card-header">
+          <div class="feature-icon-box green">🏪</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #047857;">2. Venda de Balcão (Caixa Rápido em Dinheiro)</h3>
+            <p style="font-size: 0.78rem; color: #065f46;">Para clientes que chegam sem ingresso e compram na hora</p>
+          </div>
+        </div>
+
+        <div class="mockup-visual" style="background: white; border-color: #86efac;">
+          <strong>🎯 Como Funciona no Balcão:</strong><br>
+          1. Toque no botão verde grande <strong>"🏪 VENDA BALCÃO"</strong> (ao lado do botão de ler QR Code).<br>
+          2. Abre imediatamente na tela a caixa de confirmação de venda.<br>
+          3. Escolha a quantidade de feijoadas (1, 2, 3...) pelos botões rápidos. O valor em ienes (¥ 1.000 por porção) calcula na hora.<br>
+          4. Opcional: digite o nome do cliente (se deixar vazio, o sistema gera <em>Cliente Balcão #XXX</em>).<br>
+          5. Mantenha marcado <strong>"🍲 Já Entregar Marmita Agora"</strong> (padrão).<br>
+          6. Toque em <strong>"💰 CONFIRMAR VENDA & RECEBER"</strong>.<br>
+          7. Pronto! O dinheiro entra no caixa do balcão e a marmita já é baixada no sistema em 1 toque.
+        </div>
+      </div>
+
+      <!-- Funcionalidade: Ritmo da Cozinha -->
+      <div class="feature-card">
+        <div class="feature-card-header">
+          <div class="feature-icon-box">📊</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #1c1917;">3. Acompanhamento da Cozinha</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Controle de fila para quem prepara os pratos</p>
+          </div>
+        </div>
+        <p style="font-size: 0.86rem; color: #292524; line-height: 1.5;">
+          Na aba <strong>"📊 Cozinha"</strong> do dock inferior, a equipe visualiza em tempo real:<br>
+          • <strong>🔥 Faltam Entregar:</strong> quantas marmitas ainda faltam ser retiradas da cozinha.<br>
+          • <strong>Total Vendidas:</strong> soma de todas as porções vendidas.<br>
+          • <strong>Já Entregues & Porcentagem:</strong> barra de progresso do evento.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ==================== SEÇÃO 3: MODO ADMINISTRATIVO ==================== -->
+    <section id="modo-administrativo">
+      <div class="tutorial-section-title">
+        <span>👑</span>
+        <span>Modo Administrativo (Gestão, Finanças & Caixa)</span>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+        Perfil para a coordenação, tesouraria e auditoria. Permite controle financeiro global e ajustes.
+      </p>
+
+      <!-- Gestão de Vales -->
+      <div class="feature-card">
+        <div class="feature-card-header">
+          <div class="feature-icon-box blue">🎫</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0369a1;">1. Busca & Gestão de Vales</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Consulta de ingressos vendidos e reenvio</p>
+          </div>
+        </div>
+        <p style="font-size: 0.86rem; color: #292524; line-height: 1.5;">
+          • <strong>Busca Rápida:</strong> digite o nome do comprador, telefone ou código (ex: FEIJ-1001).<br>
+          • <strong>Filtros por Status:</strong> Veja apenas os Pendentes, Entregues, Cancelados ou <strong>🏪 Só Balcão</strong>.<br>
+          • <strong>Ver QR Code:</strong> abre o QR Code de qualquer comprador na tela para escanear ou reenviar pelo WhatsApp.
+        </p>
+      </div>
+
+      <!-- Ajustes e Edição -->
+      <div class="feature-card">
+        <div class="feature-card-header">
+          <div class="feature-icon-box blue">✏️</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0369a1;">2. Ajustes de Entrada, Saída e Pagamento</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Correção de dados e registro de recebimento</p>
+          </div>
+        </div>
+        <p style="font-size: 0.86rem; color: #292524; line-height: 1.5;">
+          • <strong>Calendário de Pagamento:</strong> Registre exatamente a data em que o comprador pagou em dinheiro.<br>
+          • <strong>Status Pago / Pendente:</strong> Alterne em 1 clique se o pagamento já foi recebido ou se ficou para o dia.<br>
+          • <strong>Cancelar Vale:</strong> anula o QR code com segurança caso haja desistência.
+        </p>
+      </div>
+
+      <!-- Dashboard Financeiro & Exportação -->
+      <div class="feature-card">
+        <div class="feature-card-header">
+          <div class="feature-icon-box blue">📈</div>
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0369a1;">3. Fechamento de Caixa & Exportação Excel</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Prestação de contas transparente da paróquia</p>
+          </div>
+        </div>
+        <p style="font-size: 0.86rem; color: #292524; line-height: 1.5;">
+          • <strong>Faturamento Total:</strong> soma de todos os vales em ienes (¥).<br>
+          • <strong>Caixa Balcão Separado:</strong> mostra exatamente quanto dinheiro físico entrou pelas vendas de balcão hoje.<br>
+          • <strong>Botão Excel (CSV):</strong> baixa um arquivo com codificação universal para abrir no Excel, já com a coluna <strong>"Canal de Venda"</strong> identificando <em>Balcão</em> ou <em>Antecipado</em>.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Rodapé com botão de voltar -->
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="./" class="btn-glass btn-large-hero" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; max-width: 340px; margin: 0 auto; text-decoration: none;">
+        🍲 ENTRAR NO APLICATIVO
+      </a>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 12px;">
+        Feijoada Comunitária da Paróquia • Sistema Vale Feijoada no Japão
+      </p>
+    </div>
+
+  </main>
+
+</body>
+</html>
